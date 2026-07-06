@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>I AM JAROD</title>
+  <style>
+    :root {
+      --bg: #020403;
+      --matrix: #00ff66;
+      --matrix-soft: rgba(0, 255, 102, 0.16);
+      --surface: rgba(11, 18, 16, 0.76);
+      --surface-strong: rgba(15, 26, 22, 0.9);
+      --outline: rgba(0, 255, 102, 0.22);
+      --text: #f2fff7;
+      --muted: #9db9a7;
+      --accent: #00f3ff;
+      --danger: #ff0055;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --font-ui: Inter, Roboto, "Segoe UI", Arial, sans-serif;
+      --font-mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { min-height: 100%; background: var(--bg); }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-ui);
+      overflow-x: hidden;
+    }
+
+    #matrixCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at center, rgba(0, 255, 102, 0.08), #020403 62%);
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(2, 4, 3, 0.12), rgba(2, 4, 3, 0.86)),
+        radial-gradient(circle at top, rgba(0, 243, 255, 0.08), transparent 42%);
+    }
+
+    .page {
+      position: relative;
+      z-index: 2;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 32px 18px;
+    }
+
+    .shell {
+      width: min(1040px, 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 22px;
+    }
+
+    .topbar,
+    .hero,
+    .card,
+    .footer {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--outline);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .topbar {
+      border-radius: 999px;
+      padding: 12px 14px 12px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font: 700 0.78rem/1 var(--font-mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--matrix);
+      box-shadow: 0 0 16px var(--matrix);
+    }
+
+    .payment-btn {
+      color: #00140a;
+      background: linear-gradient(135deg, var(--matrix), var(--accent));
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 22px;
+      text-decoration: none;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      box-shadow: 0 0 28px rgba(0, 255, 102, 0.28);
+      transition: transform .25s ease, filter .25s ease;
+      white-space: nowrap;
+    }
+
+    .payment-btn:hover { transform: translateY(-2px); filter: brightness(1.15); }
+
+    .hero {
+      border-radius: var(--radius-xl);
+      padding: 44px 28px 34px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--outline);
+      border-radius: 999px;
+      padding: 8px 14px;
+      color: var(--matrix);
+      background: rgba(0, 255, 102, 0.07);
+      font: 800 0.76rem/1 var(--font-mono);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: clamp(2.2rem, 7vw, 5.4rem);
+      line-height: 0.95;
+      letter-spacing: -0.06em;
+      font-weight: 950;
+      text-transform: uppercase;
+      text-shadow: 0 0 34px rgba(0, 255, 102, 0.18);
+    }
+
+    .subtitle {
+      max-width: 720px;
+      color: #d6efe0;
+      font-size: clamp(1rem, 2vw, 1.18rem);
+      line-height: 1.7;
+    }
+
+    .runtime {
+      width: min(720px, 100%);
+      border-radius: 18px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 0, 85, 0.24);
+      padding: 18px;
+      text-align: center;
+    }
+
+    .runtime-label {
+      color: var(--danger);
+      font: 800 0.72rem/1 var(--font-mono);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    #lifeClock {
+      font: 900 clamp(1.15rem, 3vw, 1.9rem)/1.2 var(--font-mono);
+      color: #fff;
+    }
+
+    .grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .grid.two { grid-template-columns: repeat(2, 1fr); }
+
+    .card {
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(0, 255, 102, 0.12), transparent 38%);
+      pointer-events: none;
+      opacity: .7;
+    }
+
+    .card > * { position: relative; z-index: 1; }
+
+    .section-title {
+      color: var(--matrix);
+      font: 900 0.82rem/1.2 var(--font-mono);
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .card p, .card li {
+      color: #d6e8dc;
+      font-size: 0.96rem;
+      line-height: 1.7;
+    }
+
+    .astro-list {
+      list-style: none;
+      display: grid;
+      gap: 12px;
+    }
+
+    .astro-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px solid rgba(0, 255, 102, 0.12);
+      font-family: var(--font-mono);
+    }
+
+    .astro-item strong { color: #fff; font-size: .88rem; }
+    .astro-item span { color: var(--matrix); font-weight: 800; font-size: .88rem; text-align: right; }
+
+    .quote {
+      padding-left: 18px;
+      border-left: 3px solid var(--matrix);
+      color: #dfffea !important;
+    }
+
+    .footer {
+      border-radius: var(--radius-xl);
+      padding: 22px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      text-align: center;
+    }
+
+    .footer span {
+      display: block;
+      color: var(--matrix);
+      font: 900 .72rem/1.2 var(--font-mono);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .footer div { color: #d9ebe0; font-weight: 650; }
+
+    @media (max-width: 860px) {
+      .grid, .grid.two, .footer { grid-template-columns: 1fr; }
+      .topbar { border-radius: 22px; flex-direction: column; align-items: stretch; text-align: center; }
+      .status { justify-content: center; flex-wrap: wrap; }
+      .payment-btn { text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="matrixCanvas"></canvas>
+  <div class="overlay"></div>
+
+  <div class="page">
+    <div class="shell">
+      <header class="topbar">
+        <div class="status">
+          <span class="dot"></span>
+          <span>SYS_STATUS: OPERATIONAL</span>
+          <span>//</span>
+          <span>INTERFACE: HOMO SAPIENS</span>
+        </div>
+        <a href="https://jarod.com.br/pay" class="payment-btn">PAGAMENTO</a>
+      </header>
+
+      <main class="hero">
+        <div class="chip">Homo sapiens // Jarod_OS</div>
+        <h1>I AM JAROD</h1>
+        <p class="subtitle">
+          Terminal biológico em execução contínua, orientado por curiosidade crônica, criatividade operacional e arquitetura mental voltada para transformar caos em sistema.
+        </p>
+        <div class="runtime">
+          <div class="runtime-label">Tempo de execução terrestre indinterrupto</div>
+          <div id="lifeClock">Calculando runtime...</div>
+        </div>
+      </main>
+
+      <section class="grid two">
+        <article class="card">
+          <div class="section-title">Resumo operacional</div>
+          <p>
+            Nascido na virada do milênio, Jarod M M Jr. opera como uma combinação de intensidade, estratégia e impulso criativo. A interface pública é direta, energética e orientada à ação, com preferência por soluções práticas, automação e estruturas que eliminam tarefas repetitivas.
+          </p>
+        </article>
+
+        <article class="card">
+          <div class="section-title">Personalidade exterior</div>
+          <p class="quote">
+            Ascendente em Áries: presença direta, iniciativa forte, competitividade natural e tendência a executar o plano principal até funcionar.
+          </p>
+        </article>
+      </section>
+
+      <section class="card">
+        <div class="section-title">Mapa astral atualizado</div>
+        <ul class="astro-list">
+          <li class="astro-item"><strong>Ascendente</strong><span>Áries</span></li>
+          <li class="astro-item"><strong>Sol</strong><span>Escorpião</span></li>
+          <li class="astro-item"><strong>Lua</strong><span>Aquário</span></li>
+          <li class="astro-item"><strong>Mercúrio</strong><span>Escorpião</span></li>
+          <li class="astro-item"><strong>Vênus</strong><span>Libra</span></li>
+          <li class="astro-item"><strong>Marte</strong><span>Capricórnio</span></li>
+          <li class="astro-item"><strong>Júpiter</strong><span>Áries</span></li>
+          <li class="astro-item"><strong>Saturno</strong><span>Touro</span></li>
+          <li class="astro-item"><strong>Urano</strong><span>Aquário</span></li>
+          <li class="astro-item"><strong>Netuno</strong><span>Aquário</span></li>
+          <li class="astro-item"><strong>Plutão</strong><span>Sagitário</span></li>
+        </ul>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <div class="section-title">Essência</div>
+          <p>Sol em Escorpião: intensidade, leitura profunda de padrões, busca por verdade e capacidade de regeneração.</p>
+        </article>
+        <article class="card">
+          <div class="section-title">Emoções</div>
+          <p>Lua em Aquário: independência emocional, pensamento inovador e necessidade de liberdade mental.</p>
+        </article>
+        <article class="card">
+          <div class="section-title">Ação</div>
+          <p>Marte em Capricórnio: disciplina, estratégia, foco em resultado e construção consistente.</p>
+        </article>
+      </section>
+
+      <footer class="footer">
+        <div><span>Identidade</span>Jarod M M Jr.</div>
+        <div><span>Comunicação</span>31 9 9963-5303</div>
+        <div><span>Diretório</span>contato@jarod.com.br</div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('matrixCanvas');
+    const ctx = canvas.getContext('2d');
+    const chars = 'アカサタナハマヤラワ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$#@%&';
+    let fontSize = 18;
+    let columns = 0;
+    let drops = [];
+
+    function resizeMatrix() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      fontSize = window.innerWidth < 600 ? 14 : 18;
+      columns = Math.floor(canvas.width / fontSize);
+      drops = Array.from({ length: columns }, () => Math.floor(Math.random() * canvas.height / fontSize));
+    }
+
+    function drawMatrix() {
+      ctx.fillStyle = 'rgba(2, 4, 3, 0.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = chars.charAt(Math.floor(Math.random() * chars.length));
+        const x = i * fontSize;
+        const y = drops[i] * fontSize;
+
+        ctx.fillStyle = Math.random() > 0.965 ? '#d8ffe5' : '#00ff66';
+        ctx.fillText(text, x, y);
+
+        if (y > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+      }
+    }
+
+    resizeMatrix();
+    setInterval(drawMatrix, 42);
+    window.addEventListener('resize', resizeMatrix);
+
+    function updateLifeClock() {
+      const birthDate = new Date('1999-11-15T00:00:00');
+      const now = new Date();
+      const difference = now - birthDate;
+
+      const seconds = Math.floor(difference / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+
+      const displayYears = Math.floor(days / 365.25);
+      const displayDays = Math.floor(days % 365.25);
+      const displayHours = hours % 24;
+      const displayMinutes = minutes % 60;
+      const displaySeconds = seconds % 60;
+
+      document.getElementById('lifeClock').innerText =
+        `${displayYears}A ${displayDays}D ${String(displayHours).padStart(2, '0')}H ${String(displayMinutes).padStart(2, '0')}M ${String(displaySeconds).padStart(2, '0')}S`;
+    }
+
+    setInterval(updateLifeClock, 1000);
+    updateLifeClock();
+  </script>
+</body>
+</html>
