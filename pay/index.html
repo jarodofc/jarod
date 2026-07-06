@@ -1,0 +1,230 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PAGAMENTO | JAROD</title>
+  <style>
+    :root {
+      --bg: #020403;
+      --matrix: #00ff66;
+      --matrix-soft: rgba(0,255,102,.16);
+      --surface: rgba(11,18,16,.78);
+      --surface-strong: rgba(15,26,22,.92);
+      --outline: rgba(0,255,102,.24);
+      --text: #f2fff7;
+      --muted: #9db9a7;
+      --accent: #00f3ff;
+      --danger: #ff0055;
+      --shadow: 0 24px 70px rgba(0,0,0,.55);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --font-ui: Inter, Roboto, "Segoe UI", Arial, sans-serif;
+      --font-mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    html{min-height:100%;background:var(--bg)}
+    body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--font-ui);overflow-x:hidden}
+    #matrixCanvas{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none;background:radial-gradient(circle at center, rgba(0,255,102,.08), #020403 62%)}
+    .overlay{position:fixed;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg, rgba(2,4,3,.12), rgba(2,4,3,.86)),radial-gradient(circle at top, rgba(0,243,255,.08), transparent 42%)}
+    .page{position:relative;z-index:2;min-height:100vh;display:flex;justify-content:center;padding:32px 18px}
+    .shell{width:min(860px,100%);display:flex;flex-direction:column;align-items:center;gap:22px}
+    .topbar,.hero,.payment-card,.footer{width:100%;background:var(--surface);border:1px solid var(--outline);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:var(--shadow)}
+    .topbar{border-radius:999px;padding:12px 14px 12px 22px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+    .status{display:flex;align-items:center;gap:10px;color:var(--muted);font:700 .78rem/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase}
+    .dot{width:10px;height:10px;border-radius:999px;background:var(--matrix);box-shadow:0 0 16px var(--matrix)}
+    .home-btn{color:#00140a;background:linear-gradient(135deg,var(--matrix),var(--accent));border:0;border-radius:999px;padding:12px 22px;text-decoration:none;font-weight:900;letter-spacing:.1em;font-size:.78rem;text-transform:uppercase;box-shadow:0 0 28px rgba(0,255,102,.28);transition:transform .25s ease,filter .25s ease;white-space:nowrap}
+    .home-btn:hover{transform:translateY(-2px);filter:brightness(1.15)}
+    .hero{border-radius:var(--radius-xl);padding:38px 28px 30px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:16px}
+    .chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--outline);border-radius:999px;padding:8px 14px;color:var(--matrix);background:rgba(0,255,102,.07);font:800 .76rem/1 var(--font-mono);letter-spacing:.12em;text-transform:uppercase}
+    h1{font-size:clamp(2.4rem,8vw,5.1rem);line-height:.95;letter-spacing:-.06em;font-weight:950;text-transform:uppercase;text-shadow:0 0 34px rgba(0,255,102,.18)}
+    .subtitle{max-width:650px;color:#d6efe0;font-size:clamp(1rem,2vw,1.12rem);line-height:1.65}
+    .payment-card{border-radius:var(--radius-xl);padding:24px;position:relative;overflow:hidden}
+    .payment-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg, rgba(0,255,102,.12), transparent 38%);pointer-events:none;opacity:.72}
+    .payment-card>*{position:relative;z-index:1}
+    .methods{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px}
+    .method-btn{border:1px solid var(--outline);background:rgba(0,0,0,.34);color:var(--text);border-radius:18px;padding:14px 10px;cursor:pointer;font:900 .82rem/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;transition:.25s ease;display:flex;align-items:center;justify-content:center;gap:8px}
+    .method-btn svg{width:18px;height:18px;fill:currentColor}.method-btn:hover{transform:translateY(-2px);border-color:var(--matrix);background:rgba(0,255,102,.08)}
+    .method-btn.active{background:linear-gradient(135deg,var(--matrix),var(--accent));color:#00140a;border-color:transparent;box-shadow:0 0 26px rgba(0,255,102,.28)}
+    .sub-methods{display:flex;justify-content:center;gap:10px;margin-bottom:22px;flex-wrap:wrap}.sub-btn{border:1px solid rgba(0,255,102,.25);background:rgba(0,0,0,.28);color:var(--muted);border-radius:999px;padding:10px 16px;cursor:pointer;font:900 .75rem/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase}.sub-btn.active,.sub-btn:hover{color:#00140a;background:var(--matrix);border-color:var(--matrix)}
+    .tab-content,.pix-sub-content{display:none;animation:fadeIn .35s ease}.tab-content.active,.pix-sub-content.active{display:block}.content-box{display:flex;flex-direction:column;align-items:center;gap:20px;width:min(620px,100%);margin:0 auto}.field-group{width:100%}.field-label{display:block;color:var(--muted);font:800 .75rem/1 var(--font-mono);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}.custom-input,.crypto-select{width:100%;background:rgba(0,0,0,.45);border:1px solid rgba(0,255,102,.24);border-radius:16px;color:var(--text);padding:15px 16px;font-size:1rem;outline:none;text-align:center}.custom-input:focus,.crypto-select:focus,.input-inline-group:focus-within{border-color:var(--matrix);box-shadow:0 0 0 4px rgba(0,255,102,.08)}
+    .qr-wrapper{width:176px;height:176px;background:#fff;border-radius:22px;padding:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 34px rgba(0,255,102,.18)}.qr-wrapper img{width:100%;height:100%;object-fit:contain}.input-inline-group{display:flex;width:100%;background:rgba(0,0,0,.45);border:1px solid rgba(0,255,102,.24);border-radius:16px;overflow:hidden}.inline-input{flex:1;min-width:0;background:transparent;border:0;color:var(--text);padding:15px;font-size:.92rem;outline:none;text-align:center;text-overflow:ellipsis;white-space:nowrap;overflow:hidden}.inline-btn{background:rgba(0,255,102,.11);border:0;border-left:1px solid rgba(0,255,102,.24);color:var(--matrix);padding:0 20px;font:900 .75rem/1 var(--font-mono);cursor:pointer;letter-spacing:.1em;text-transform:uppercase}.inline-btn:hover{background:var(--matrix);color:#00140a}.crypto-header-group{display:flex;align-items:center;gap:12px}.crypto-icon-indicator{width:50px;height:50px;border-radius:16px;background:rgba(0,255,102,.08);border:1px solid var(--outline);display:flex;align-items:center;justify-content:center;color:var(--matrix);flex-shrink:0}.crypto-icon-indicator svg{width:26px;height:26px;fill:currentColor}.crypto-select{flex:1;text-align:left;color:var(--matrix);font-weight:900;text-transform:uppercase}.crypto-select option{background:#07100b;color:#fff}.info-text{color:#d6efe0;line-height:1.7;text-align:center;margin-bottom:14px}.pay-link-btn{display:inline-flex;width:100%;justify-content:center;align-items:center;color:#00140a;background:linear-gradient(135deg,var(--matrix),var(--accent));border-radius:18px;padding:16px 18px;text-decoration:none;font-weight:950;letter-spacing:.12em;text-transform:uppercase;box-shadow:0 0 30px rgba(0,255,102,.24);transition:.25s ease}.pay-link-btn:hover{transform:translateY(-2px);filter:brightness(1.12)}
+    .footer{border-radius:var(--radius-lg);padding:18px;text-align:center;color:var(--muted);font:800 .76rem/1.5 var(--font-mono);letter-spacing:.08em;text-transform:uppercase}.toast{position:fixed;left:50%;bottom:28px;z-index:20;transform:translateX(-50%) translateY(100px);background:linear-gradient(135deg,var(--matrix),var(--accent));color:#00140a;border-radius:999px;padding:14px 24px;font:950 .78rem/1 var(--font-mono);letter-spacing:.08em;text-transform:uppercase;box-shadow:0 16px 40px rgba(0,255,102,.26);transition:transform .35s ease}.toast.show{transform:translateX(-50%) translateY(0)}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:640px){.topbar{border-radius:24px;align-items:flex-start;flex-direction:column}.home-btn{width:100%;text-align:center}.methods{grid-template-columns:1fr}.payment-card,.hero{padding:22px}.crypto-header-group{align-items:stretch;flex-direction:column}.crypto-icon-indicator{width:100%}.inline-btn{padding:0 14px}}
+  </style>
+</head>
+<body>
+  <canvas id="matrixCanvas"></canvas><div class="overlay"></div>
+  <div class="page"><div class="shell">
+    <header class="topbar"><div class="status"><span class="dot"></span><span>PAYMENT_GATEWAY: ONLINE</span></div><a href="https://jarod.com.br" class="home-btn">VOLTAR</a></header>
+    <section class="hero"><div class="chip">HOMO SAPIENS // JAROD_OS</div><h1>PAGAMENTO</h1><p class="subtitle">Interface centralizada de liquidação digital com Pix, ativos criptográficos e checkout externo.</p></section>
+    <main class="payment-card">
+      <div class="methods">
+        <button class="method-btn active" onclick="switchTab('pix',this)"><svg viewBox="0 0 24 24"><path d="M12 2L3.5 10.5L12 19L20.5 10.5L12 2ZM12 4.8L18 10.5L12 16.2L6 10.5L12 4.8ZM12 7.7L9.2 10.5L12 13.3L14.8 10.5L12 7.7Z"/></svg>Pix</button>
+        <button class="method-btn" onclick="switchTab('crypto',this)"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/></svg>Crypto</button>
+        <button class="method-btn" onclick="switchTab('card',this)"><svg viewBox="0 0 24 24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg>Cartão</button>
+      </div>
+      <div id="pix-tab" class="tab-content active"><div class="sub-methods"><button class="sub-btn active" id="btnSubDynamic" onclick="switchPixSub('dynamic')">Valor Definido</button><button class="sub-btn" id="btnSubStatic" onclick="switchPixSub('static')">Chave Fixa</button></div>
+        <div id="pix-dynamic-content" class="pix-sub-content active"><div class="content-box"><div class="field-group"><label class="field-label">Montante de Liquidação (R$)</label><input type="number" class="custom-input" id="pixAmount" placeholder="0.00" min="0" step="0.01" oninput="generateDynamicPix()"></div><div class="qr-wrapper"><img id="pixQrImg" src="" alt="QR Pix"></div><div class="field-group"><label class="field-label">Código BR Code Copia e Cola</label><div class="input-inline-group"><input type="text" class="inline-input" id="pixStringOutput" value="00020101021126310014br.gov.bcb.pix0117pix@jarod.com.br5204000053039865802BR5909E-SHOPLTD6009BeloHoriz62070503***6304" readonly><button class="inline-btn" onclick="copyValue('pixStringOutput')">Copiar</button></div></div></div></div>
+        <div id="pix-static-content" class="pix-sub-content"><div class="content-box"><div class="qr-wrapper"><img id="pixStaticQrImg" src="" alt="QR Fixo"></div><div class="field-group"><label class="field-label">Chave de Endereçamento Direto</label><div class="input-inline-group"><input type="text" class="inline-input" id="pixStaticKey" value="pix@jarod.com.br" readonly><button class="inline-btn" onclick="copyValue('pixStaticKey')">Copiar</button></div></div></div></div>
+      </div>
+      <div id="crypto-tab" class="tab-content"><div class="content-box"><div class="field-group"><label class="field-label">Selecione o Ativo Digital</label><div class="crypto-header-group"><div class="crypto-icon-indicator"><svg viewBox="0 0 24 24" id="iconSvgSource"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.17 11.12c-.17.92-.76 1.43-1.74 1.55v1.33h-1.06v-1.31h-.76v1.31H10.55v-1.33c-.76 0-1.5.02-2.18-.04l.26-1.55s.52.06.99.04c.31-.02.43-.19.49-.39l.66-3.83c-.09-.02-.24-.04-.45-.04-.43 0-.85.04-.85.04l.19-1.51c.64-.04 1.34-.04 2-.04v-1.3h1.06v1.27h.76v-1.27h1.06v1.29c.85.06 1.39.43 1.5 1.15.11.83-.24 1.33-.87 1.55.77.19 1.17.74 1 1.62zm-3.23-3.05c0-.28-.29-.32-.61-.31l-.47 2.76c.34 0 .68-.02.83-.22.24-.31.36-.78.25-2.23zm.32 3.19c.11-.34-.13-.49-.52-.49h-.53l-.53 3.13c.4 0 .73-.04.91-.32.22-.32.32-.83.16-2.32z"/></svg></div><select class="crypto-select" id="cryptoAsset" onchange="updateCryptoAssetLayout()"><option value="btc">Bitcoin (BTC)</option><option value="eth">Ethereum (ETH)</option><option value="usdt">Tether (USDT)</option><option value="xrp">Ripple (XRP)</option></select></div></div><div class="field-group"><label class="field-label">Endereço de Destino Criptográfico</label><div class="input-inline-group"><input type="text" class="inline-input" id="cryptoKey" value="bc1q8p4ehp84ays2w7cxl3yhtsqcjd97znxfq8he4k" readonly><button class="inline-btn" onclick="copyValue('cryptoKey')">Copiar</button></div></div></div></div>
+      <div id="card-tab" class="tab-content"><div class="content-box"><p class="info-text">Checkout externo para pagamentos via cartão de crédito ou débito através do parceiro financeiro.</p><a href="https://link.mercadopago.com.br/eshopltda" target="_blank" class="pay-link-btn">Conectar ao Mercado Pago</a></div></div>
+    </main>
+    <footer class="footer">PIX // CRYPTO // CARTÃO — SISTEMA DE PAGAMENTO CENTRALIZADO</footer>
+  </div></div><div class="toast" id="toastAlert">Dados copiados com sucesso</div>
+<script>
+    const canvas = document.getElementById('matrixCanvas');
+    const ctx = canvas.getContext('2d');
+    let fontSize = 16;
+    let columns = 0;
+    let drops = [];
+    const matrixChars = 'アァカサタナハマヤャラワガザダバパ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$#@%&PIX';
+
+    function resizeMatrixCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      columns = Math.floor(canvas.width / fontSize);
+      drops = Array(columns).fill(1);
+    }
+
+    function drawMatrixRain() {
+      ctx.fillStyle = 'rgba(0,0,0,.08)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.font = `${fontSize}px monospace`;
+      for (let i = 0; i < drops.length; i++) {
+        const text = matrixChars.charAt(Math.floor(Math.random() * matrixChars.length));
+        const x = i * fontSize;
+        const y = drops[i] * fontSize;
+        ctx.fillStyle = Math.random() > .975 ? '#d8ffe0' : '#00ff66';
+        ctx.shadowColor = '#00ff66';
+        ctx.shadowBlur = 8;
+        ctx.fillText(text, x, y);
+        if (y > canvas.height && Math.random() > .975) drops[i] = 0;
+        drops[i]++;
+      }
+    }
+
+    resizeMatrixCanvas();
+    setInterval(drawMatrixRain, 42);
+    window.addEventListener('resize', resizeMatrixCanvas);
+
+    const cryptoData = {
+      btc: { address: 'bc1q8p4ehp84ays2w7cxl3yhtsqcjd97znxfq8he4k', svg: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.17 11.12c-.17.92-.76 1.43-1.74 1.55v1.33h-1.06v-1.31h-.76v1.31H10.55v-1.33c-.76 0-1.5.02-2.18-.04l.26-1.55s.52.06.99.04c.31-.02.43-.19.49-.39l.66-3.83c-.09-.02-.24-.04-.45-.04-.43 0-.85.04-.85.04l.19-1.51c.64-.04 1.34-.04 2-.04v-1.3h1.06v1.27h.76v-1.27h1.06v1.29c.85.06 1.39.43 1.5 1.15.11.83-.24 1.33-.87 1.55.77.19 1.17.74 1 1.62zm-3.23-3.05c0-.28-.29-.32-.61-.31l-.47 2.76c.34 0 .68-.02.83-.22.24-.31.36-.78.25-2.23zm.32 3.19c.11-.34-.13-.49-.52-.49h-.53l-.53 3.13c.4 0 .73-.04.91-.32.22-.32.32-.83.16-2.32z"/>' },
+      eth: { address: '0xfa41454114A189aAd31085060894331ced13E69F', svg: '<path d="M12 2A10 10 0 1 0 22 12 A10 10 0 0 0 12 2 m0 2.38 l4.54 7.52 l-4.54 2.68 l-4.54 -2.68 m4.54 -7.52 m0 15.24 l-4.54 -6.37 l4.54 2.68 l4.54 -2.68 z"/>' },
+      usdt: { address: '0xfa41454114A189aAd31085060894331ced13E69F', svg: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.83 7.15h-2.58v1.16c1.33.07 2.29.27 2.29.51 0 .24-.96.44-2.29.51v4.32h-2.5v-4.32C9.42 13.26 8.46 13.06 8.46 12.82c0-.24.96-.44 2.29-.51V11.15H8.17V9.15h3.63V6.82h2.44v2.33h3.59v2z"/>' },
+      xrp: { address: 'rwRXbp6HiFGNw4eczb6GTChrqQwZsQhPXL', svg: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.2 13.9H8.8l3.2-3.2 3.2 3.2zm0-7.8L12 11.3 8.8 8.1h6.4z"/>' }
+    };
+
+    const pixConfig = {
+      key: 'pix@jarod.com.br',
+      merchantName: 'JAROD',
+      merchantCity: 'BELO HORIZONTE',
+      txid: 'JARODPAY'
+    };
+
+    function tlv(id, value) {
+      const text = String(value);
+      return id + String(text.length).padStart(2, '0') + text;
+    }
+
+    function crc16(payload) {
+      let crc = 0xFFFF;
+      for (let i = 0; i < payload.length; i++) {
+        crc ^= payload.charCodeAt(i) << 8;
+        for (let j = 0; j < 8; j++) {
+          crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
+          crc &= 0xFFFF;
+        }
+      }
+      return crc.toString(16).toUpperCase().padStart(4, '0');
+    }
+
+    function buildPixPayload(amount) {
+      const gui = tlv('00', 'br.gov.bcb.pix');
+      const key = tlv('01', pixConfig.key);
+      const merchantAccount = tlv('26', gui + key);
+      const additionalData = tlv('62', tlv('05', pixConfig.txid));
+      let payload = '';
+      payload += tlv('00', '01');
+      payload += tlv('01', '12');
+      payload += merchantAccount;
+      payload += tlv('52', '0000');
+      payload += tlv('53', '986');
+      if (amount && Number(amount) > 0) payload += tlv('54', Number(amount).toFixed(2));
+      payload += tlv('58', 'BR');
+      payload += tlv('59', pixConfig.merchantName.substring(0, 25));
+      payload += tlv('60', pixConfig.merchantCity.substring(0, 15));
+      payload += additionalData;
+      payload += '6304';
+      return payload + crc16(payload);
+    }
+
+    function updatePixQr(payload) {
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=10&data=${encodeURIComponent(payload)}`;
+      const dynamicImg = document.getElementById('pixQrImg');
+      const staticImg = document.getElementById('pixStaticQrImg');
+      if (dynamicImg) dynamicImg.src = qrUrl;
+      if (staticImg) staticImg.src = qrUrl;
+    }
+
+    function generateDynamicPix() {
+      const amountInput = document.getElementById('pixAmount');
+      const output = document.getElementById('pixStringOutput');
+      const amount = amountInput ? amountInput.value : '';
+      const payload = buildPixPayload(amount);
+      if (output) output.value = payload;
+      updatePixQr(payload);
+    }
+
+    function switchTab(type, button) {
+      document.querySelectorAll('.method-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      button.classList.add('active');
+      document.getElementById(`${type}-tab`).classList.add('active');
+    }
+
+    function switchPixSub(subType) {
+      document.querySelectorAll('.sub-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.pix-sub-content').forEach(content => content.classList.remove('active'));
+      if (subType === 'dynamic') {
+        document.getElementById('btnSubDynamic').classList.add('active');
+        document.getElementById('pix-dynamic-content').classList.add('active');
+      } else {
+        document.getElementById('btnSubStatic').classList.add('active');
+        document.getElementById('pix-static-content').classList.add('active');
+      }
+    }
+
+    function updateCryptoAssetLayout() {
+      const asset = document.getElementById('cryptoAsset').value;
+      const targetInput = document.getElementById('cryptoKey');
+      const iconSvgSource = document.getElementById('iconSvgSource');
+      if (cryptoData[asset]) {
+        targetInput.value = cryptoData[asset].address;
+        iconSvgSource.innerHTML = cryptoData[asset].svg;
+      }
+    }
+
+    function copyValue(id) {
+      const inputEl = document.getElementById(id);
+      const toast = document.getElementById('toastAlert');
+      if (!inputEl) return;
+      inputEl.select();
+      inputEl.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(inputEl.value).then(() => {
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2500);
+      }).catch(() => {
+        document.execCommand('copy');
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2500);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', generateDynamicPix);
+  </script>
+</body>
+</html>
