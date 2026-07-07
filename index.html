@@ -1,923 +1,483 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>I Am Jarod</title>
-  <style>
-    :root {
-      --bg: #020403;
-      --matrix: #00ff66;
-      --matrix-soft: rgba(0, 255, 102, 0.16);
-      --cyan: #00e5ff;
-      --magenta: #ff0055;
-      --glass: rgba(8, 18, 16, 0.72);
-      --glass-strong: rgba(5, 14, 13, 0.88);
-      --border: rgba(0, 255, 102, 0.22);
-      --text: #ecfff4;
-      --muted: #b8c9c0;
-      --shadow: 0 24px 80px rgba(0, 0, 0, 0.65);
-      --radius: 24px;
-      --mono: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
-      --sans: 'Segoe UI', Roboto, Arial, sans-serif;
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      min-height: 100vh;
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
-      font-size: 16px;
-      letter-spacing: 0.01em;
-      overflow-x: hidden;
-    }
-
-    #matrixCanvas {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-      background: radial-gradient(circle at center, rgba(0, 255, 102, 0.08), transparent 42%), #020403;
-    }
-
-    .screen-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      pointer-events: none;
-      background:
-        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
-        radial-gradient(circle at top, rgba(0, 229, 255, 0.12), transparent 40%),
-        radial-gradient(circle at bottom, rgba(255, 0, 85, 0.08), transparent 45%);
-      background-size: 100% 4px, auto, auto;
-      mix-blend-mode: screen;
-    }
-
-    .page {
-      position: relative;
-      z-index: 2;
-      width: min(1060px, calc(100% - 32px));
-      margin: 0 auto;
-      padding: 28px 0 32px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 22px;
-    }
-
-    .system-bar,
-    .hero,
-    .card,
-    .footer {
-      width: 100%;
-      background: var(--glass);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow), inset 0 0 28px rgba(0, 255, 102, 0.035);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-    }
-
-    .system-bar {
-      padding: 18px 20px;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 18px;
-      align-items: center;
-      overflow: hidden;
-    }
-
-    .system-title {
-      font-family: var(--mono);
-      color: var(--matrix);
-      font-size: 0.8rem;
-      letter-spacing: 1.8px;
-      text-transform: uppercase;
-      margin-bottom: 10px;
-    }
-
-    .loader-track {
-      width: 100%;
-      height: 10px;
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 999px;
-      overflow: hidden;
-      border: 1px solid rgba(0, 255, 102, 0.14);
-    }
-
-    .loader-fill {
-      height: 100%;
-      width: 0%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, var(--matrix), var(--cyan));
-      box-shadow: 0 0 18px var(--matrix);
-      animation: bootLoad 3.2s ease forwards;
-    }
-
-    .boot-lines {
-      font-family: var(--mono);
-      font-size: 0.74rem;
-      color: var(--muted);
-      margin-top: 10px;
-      min-height: 18px;
-    }
-
-    .pay-btn {
-      border: 1px solid rgba(0, 229, 255, 0.6);
-      background: linear-gradient(135deg, rgba(0,229,255,0.95), rgba(0,255,102,0.88));
-      color: #00120a;
-      text-decoration: none;
-      font-weight: 900;
-      letter-spacing: 1.4px;
-      padding: 13px 22px;
-      border-radius: 999px;
-      box-shadow: 0 10px 28px rgba(0, 229, 255, 0.25);
-      transition: 0.25s ease;
-      font-family: var(--mono);
-      white-space: nowrap;
-    }
-
-    .pay-btn:hover { transform: translateY(-2px); filter: brightness(1.12); }
-
-    .hero {
-      padding: 48px 24px 42px;
-      text-align: center;
-      background: linear-gradient(180deg, rgba(8, 18, 16, 0.8), rgba(4, 10, 9, 0.72));
-    }
-
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      border: 1px solid rgba(0, 255, 102, 0.24);
-      background: rgba(0, 255, 102, 0.08);
-      color: var(--matrix);
-      font-family: var(--mono);
-      padding: 8px 13px;
-      border-radius: 999px;
-      font-size: 0.74rem;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      margin-bottom: 18px;
-    }
-
-    .hero h1 {
-      font-size: clamp(2.9rem, 7vw, 5.35rem);
-      line-height: 0.94;
-      letter-spacing: -2px;
-      text-shadow: 0 0 28px rgba(0, 255, 102, 0.35);
-      margin-bottom: 16px;
-    }
-
-    .hero p {
-      color: #c6d8cf;
-      font-size: clamp(0.98rem, 1.7vw, 1.12rem);
-      max-width: 640px;
-      margin: 0 auto;
-      line-height: 1.7;
-    }
-
-    .grid {
-      width: 100%;
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 22px;
-      align-items: stretch;
-    }
-
-    .card { padding: 28px; }
-
-    .card, .hero, .system-bar, .footer {
-      color: var(--text);
-    }
-
-    .card h2 {
-      font-family: var(--mono);
-      color: var(--matrix);
-      font-size: 0.88rem;
-      letter-spacing: 1.8px;
-      text-transform: uppercase;
-      margin-bottom: 16px;
-    }
-
-    .about-text {
-      color: #dcefe6;
-      line-height: 1.85;
-      font-size: 0.98rem;
-      font-weight: 500;
-      letter-spacing: 0.2px;
-    }
-
-    .scripted-story {
-      display: grid;
-      gap: 16px;
-      text-align: left;
-    }
-
-    .scripted-story p {
-      margin: 0;
-      color: #d8efe4;
-      line-height: 1.9;
-      font-size: clamp(0.94rem, 1.1vw, 1.04rem);
-    }
-
-    .story-kicker {
-      display: inline-flex;
-      width: fit-content;
-      color: var(--matrix);
-      background: rgba(0, 255, 102, 0.08);
-      border: 1px solid rgba(0, 255, 102, 0.18);
-      border-radius: 999px;
-      padding: 8px 12px;
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      letter-spacing: 1.2px;
-      text-transform: uppercase;
-      box-shadow: inset 0 0 18px rgba(0, 255, 102, 0.04);
-    }
-
-    .profile-list {
-      display: grid;
-      gap: 12px;
-    }
-
-    .profile-item {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 14px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      color: var(--muted);
-    }
-
-    .profile-item strong { color: #f4fff8; text-align: right; font-weight: 800; }
-
-    .astro-layout {
-      display: grid;
-      grid-template-columns: minmax(260px, 360px) 1fr;
-      gap: 30px;
-      align-items: center;
-    }
-
-    .astro-visual {
-      display: grid;
-      place-items: center;
-      gap: 16px;
-    }
-
-    .pie-wrap {
-      --a: 34%;
-      --b: 67%;
-      width: min(320px, 78vw);
-      aspect-ratio: 1;
-      border-radius: 50%;
-      background:
-        radial-gradient(circle, rgba(5,14,13,0.98) 0 38%, transparent 39%),
-        conic-gradient(
-          from -90deg,
-          var(--matrix) 0 var(--a),
-          rgba(0, 255, 102, 0.12) var(--a) calc(var(--a) + 1%),
-          var(--cyan) calc(var(--a) + 1%) var(--b),
-          rgba(0, 229, 255, 0.12) var(--b) calc(var(--b) + 1%),
-          var(--magenta) calc(var(--b) + 1%) 100%
-        );
-      display: grid;
-      place-items: center;
-      margin: 0 auto;
-      box-shadow:
-        0 0 42px rgba(0, 255, 102, 0.18),
-        inset 0 0 0 1px rgba(255,255,255,0.08),
-        inset 0 0 38px rgba(0,0,0,0.55);
-      position: relative;
-      animation: chartEntry 1.1s ease both;
-      isolation: isolate;
-    }
-
-    .pie-wrap::before {
-      content: '';
-      position: absolute;
-      inset: -12px;
-      border-radius: 50%;
-      border: 1px solid rgba(0, 255, 102, 0.12);
-      background: radial-gradient(circle, transparent 62%, rgba(0,255,102,0.08));
-      z-index: -1;
-    }
-
-    .pie-wrap::after {
-      content: '';
-      position: absolute;
-      inset: 25%;
-      border-radius: 50%;
-      background: linear-gradient(180deg, rgba(8, 18, 16, 0.96), rgba(3, 7, 6, 0.94));
-      border: 1px solid rgba(255,255,255,0.1);
-      box-shadow: inset 0 0 24px rgba(0,255,102,0.08);
-    }
-
-    .pie-center {
-      position: relative;
-      z-index: 1;
-      text-align: center;
-      font-family: var(--mono);
-      color: #fff;
-      display: grid;
-      gap: 4px;
-    }
-
-    .pie-center strong {
-      font-size: clamp(1.5rem, 5vw, 2.35rem);
-      letter-spacing: -1px;
-      color: var(--matrix);
-      text-shadow: 0 0 18px rgba(0,255,102,0.45);
-    }
-
-    .pie-center span {
-      font-size: 0.7rem;
-      color: var(--muted);
-      letter-spacing: 1.6px;
-      text-transform: uppercase;
-    }
-
-    .chart-label {
-      position: absolute;
-      z-index: 2;
-      min-width: 92px;
-      padding: 7px 10px;
-      border-radius: 999px;
-      background: rgba(0,0,0,0.58);
-      border: 1px solid rgba(255,255,255,0.12);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      color: #fff;
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      text-align: center;
-      box-shadow: 0 10px 24px rgba(0,0,0,0.35);
-    }
-
-    .chart-label.sun-label { top: 18px; right: 18px; color: var(--matrix); }
-    .chart-label.asc-label { bottom: 30px; right: 6px; color: var(--cyan); }
-    .chart-label.moon-label { bottom: 30px; left: 6px; color: var(--magenta); }
-
-    .chart-caption {
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      color: var(--muted);
-      text-align: center;
-      letter-spacing: 0.8px;
-    }
-
-    .astro-list {
-      display: grid;
-      gap: 12px;
-    }
-
-    .astro-item {
-      display: grid;
-      grid-template-columns: 34px 1fr auto;
-      gap: 12px;
-      align-items: center;
-      padding: 15px 16px;
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 18px;
-      background: linear-gradient(135deg, rgba(255,255,255,0.055), rgba(255,255,255,0.022));
-      transition: transform .22s ease, border-color .22s ease, background .22s ease;
-    }
-
-    .astro-item:hover {
-      transform: translateY(-2px);
-      border-color: rgba(0,255,102,0.24);
-      background: rgba(0,255,102,0.045);
-    }
-
-    .dot {
-      width: 15px;
-      height: 15px;
-      border-radius: 50%;
-      box-shadow: 0 0 18px currentColor;
-    }
-
-    .sun { color: var(--matrix); background: var(--matrix); }
-    .asc { color: var(--cyan); background: var(--cyan); }
-    .moon { color: var(--magenta); background: var(--magenta); }
-
-    .astro-item span { color: var(--muted); font-size: 0.84rem; }
-    .astro-item strong { color: #fff; }
-    .astro-item em { color: var(--matrix); font-style: normal; font-family: var(--mono); }
-
-    .skills {
-      display: grid;
-      gap: 15px;
-    }
-
-    .skill-row {
-      display: grid;
-      gap: 8px;
-    }
-
-    .skill-head {
-      display: flex;
-      justify-content: space-between;
-      color: #d7eee1;
-      font-size: 0.92rem;
-    }
-
-    .skill-bar {
-      height: 9px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.08);
-      overflow: hidden;
-    }
-
-    .skill-bar i {
-      display: block;
-      height: 100%;
-      width: var(--w);
-      background: linear-gradient(90deg, var(--matrix), var(--cyan));
-      border-radius: inherit;
-      box-shadow: 0 0 18px rgba(0,255,102,0.5);
-    }
-
-    .clock {
-      font-family: var(--mono);
-      text-align: center;
-      font-size: clamp(1.25rem, 3.2vw, 2rem);
-      color: #fff;
-      padding: 20px;
-      border-radius: 20px;
-      background: rgba(0,0,0,0.35);
-      border: 1px solid rgba(0,255,102,0.14);
-      text-shadow: 0 0 18px rgba(0,255,102,0.24);
-    }
-
-    .identity-link {
-      color: #eafff1;
-      text-decoration: none;
-      font-weight: 800;
-      transition: color 0.25s ease, text-shadow 0.25s ease;
-    }
-
-    .identity-link:hover {
-      color: var(--matrix);
-      text-shadow: 0 0 12px rgba(0,255,102,0.5);
-    }
-
-
-    .network-action {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 104px;
-      padding: 9px 14px;
-      border-radius: 999px;
-      border: 1px solid rgba(0, 255, 102, 0.38);
-      background: linear-gradient(135deg, rgba(0,255,102,0.18), rgba(0,229,255,0.12));
-      color: #eafff1;
-      text-decoration: none;
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      font-weight: 900;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      box-shadow: inset 0 0 14px rgba(0,255,102,0.08), 0 8px 22px rgba(0,0,0,0.28);
-      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
-    }
-
-    .network-action:hover {
-      transform: translateY(-2px);
-      border-color: var(--matrix);
-      background: linear-gradient(135deg, rgba(0,255,102,0.32), rgba(0,229,255,0.2));
-      box-shadow: 0 0 18px rgba(0,255,102,0.25), 0 12px 26px rgba(0,0,0,0.36);
-    }
-
-    .profile-item strong.action-wrap {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      text-align: right;
-    }
-
-    .network-value {
-      color: #eafff1;
-      font-weight: 800;
-    }
-
-    .status-online {
-      display: inline-flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 8px;
-    }
-
-    .status-online::before {
-      content: '';
-      width: 8px;
-      height: 8px;
-      border-radius: 999px;
-      background: var(--matrix);
-      box-shadow: 0 0 12px rgba(0,255,102,0.95);
-      animation: pulseStatus 1.4s ease-in-out infinite;
-    }
-
-    @keyframes pulseStatus {
-      0%, 100% { opacity: 0.45; transform: scale(0.85); }
-      50% { opacity: 1; transform: scale(1.12); }
-    }
-
-    .footer {
-      padding: 22px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      font-family: var(--mono);
-      color: rgba(236,255,244,0.7);
-      font-size: 0.8rem;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    .footer p {
-      color: rgba(236,255,244,0.7);
-      font-weight: 700;
-      word-break: break-word;
-    }
-
-    @keyframes bootLoad {
-      0% { width: 0%; }
-      35% { width: 38%; }
-      70% { width: 82%; }
-      100% { width: 100%; }
-    }
-
-    @keyframes chartEntry {
-      from { opacity: 0; transform: scale(0.88) rotate(-18deg); filter: blur(6px); }
-      to { opacity: 1; transform: scale(1) rotate(0); filter: blur(0); }
-    }
-
-
-
-    .device-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-      margin-top: 8px;
-    }
-
-    .device-item {
-      position: relative;
-      overflow: hidden;
-      min-height: 104px;
-      padding: 18px;
-      border-radius: 20px;
-      background: linear-gradient(145deg, rgba(0, 255, 102, 0.10), rgba(0, 229, 255, 0.06));
-      border: 1px solid rgba(0, 255, 102, 0.18);
-      box-shadow: inset 0 0 18px rgba(0, 255, 102, 0.035);
-    }
-
-    .device-item::after {
-      content: '';
-      position: absolute;
-      inset: auto -20px -35px auto;
-      width: 90px;
-      height: 90px;
-      border-radius: 999px;
-      background: rgba(0, 255, 102, 0.08);
-      filter: blur(2px);
-    }
-
-    .device-item span {
-      display: block;
-      color: var(--muted);
-      font-family: var(--mono);
-      font-size: 0.72rem;
-      text-transform: uppercase;
-      letter-spacing: 1.4px;
-      margin-bottom: 8px;
-    }
-
-    .device-item strong {
-      position: relative;
-      z-index: 1;
-      display: block;
-      color: var(--text);
-      font-size: 1rem;
-      line-height: 1.35;
-    }
-
-    .hero-chips {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-bottom: 18px;
-    }
-
-    .icon-row {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .device-icon {
-      position: relative;
-      z-index: 1;
-      width: 42px;
-      height: 42px;
-      border-radius: 14px;
-      display: grid;
-      place-items: center;
-      color: var(--matrix);
-      background: rgba(0, 255, 102, 0.08);
-      border: 1px solid rgba(0, 255, 102, 0.18);
-      box-shadow: inset 0 0 18px rgba(0, 255, 102, 0.04);
-      flex: 0 0 auto;
-    }
-
-    .device-icon svg {
-      width: 22px;
-      height: 22px;
-      stroke: currentColor;
-      stroke-width: 1.9;
-      fill: none;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-
-    .chip-icon, .pay-btn, .system-title, .section-title, .row-label, .skill-head span, .clock-icon {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .chip-icon svg, .pay-btn svg, .system-title svg, .section-title svg, .row-label svg, .skill-head svg, .clock-icon svg {
-      width: 16px;
-      height: 16px;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      flex-shrink: 0;
-    }
-
-    .section-title {
-      color: var(--matrix);
-      font-family: var(--mono);
-      font-size: 0.78rem;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      margin-bottom: 22px;
-    }
-
-    .row-label {
-      color: var(--muted);
-    }
-
-    .row-label svg {
-      width: 15px;
-      height: 15px;
-    }
-
-    .network-action svg {
-      width: 13px;
-      height: 13px;
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      margin-right: 5px;
-      vertical-align: -2px;
-    }
-
-    .status-online::before {
-      content: '';
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: var(--matrix);
-      box-shadow: 0 0 12px var(--matrix);
-      display: inline-block;
-      margin-right: 7px;
-    }
-
-    @media (max-width: 560px) {
-      .device-grid { grid-template-columns: 1fr; }
-      .hero-chips { justify-content: center; }
-    }
-
-    @media (max-width: 850px) {
-      .system-bar, .grid, .astro-layout, .footer { grid-template-columns: 1fr; }
-      .system-bar { text-align: center; }
-      .pay-btn { justify-self: center; }
-      .hero h1 { letter-spacing: -1px; }
-      .astro-layout { text-align: left; }
-      .astro-visual { order: -1; }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>I Am Jarod</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#020504;
+  --surface:#07120f;
+  --surface-2:#0b1b17;
+  --surface-3:#0e241f;
+  --cyan:#00e5ff;
+  --green:#00ff7a;
+  --green-soft:#54ffad;
+  --white:#eefcf6;
+  --muted:#9ab7ad;
+  --muted-2:#6f9185;
+  --line:rgba(0,229,255,.22);
+  --line-green:rgba(0,255,122,.22);
+  --shadow:0 22px 70px rgba(0,0,0,.55);
+  --radius:24px;
+  --mono:'JetBrains Mono',monospace;
+  --sans:'Inter',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  min-height:100vh;
+  background:var(--bg);
+  color:var(--white);
+  font-family:var(--sans);
+  overflow-x:hidden;
+}
+#matrixCanvas{
+  position:fixed;
+  inset:0;
+  width:100%;
+  height:100%;
+  z-index:0;
+  background:radial-gradient(circle at 50% 15%,rgba(0,229,255,.08),transparent 35%),#010403;
+}
+.bg-overlay{
+  position:fixed;
+  inset:0;
+  z-index:1;
+  pointer-events:none;
+  background:
+    linear-gradient(180deg,rgba(2,5,4,.20),rgba(2,5,4,.82)),
+    radial-gradient(circle at top right,rgba(0,229,255,.12),transparent 32%),
+    radial-gradient(circle at bottom left,rgba(0,255,122,.10),transparent 35%);
+}
+.page{
+  position:relative;
+  z-index:2;
+  width:min(1120px,calc(100% - 32px));
+  margin:0 auto;
+  padding:28px 0 34px;
+}
+.top-panel{
+  border:1px solid var(--line);
+  background:linear-gradient(135deg,rgba(7,18,15,.96),rgba(11,27,23,.94));
+  border-radius:var(--radius);
+  box-shadow:var(--shadow), inset 0 0 0 1px rgba(255,255,255,.025);
+  padding:18px 20px;
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:18px;
+  align-items:center;
+  margin-bottom:28px;
+}
+.boot-title{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  font-family:var(--mono);
+  font-size:.78rem;
+  letter-spacing:.14em;
+  color:var(--green);
+  text-transform:uppercase;
+  margin-bottom:10px;
+}
+.icon{width:20px;height:20px;display:inline-flex;flex:0 0 auto;color:currentColor}
+.icon svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.boot-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.progress{
+  width:min(420px,100%);
+  height:10px;
+  background:#03100c;
+  border:1px solid rgba(0,255,122,.18);
+  border-radius:999px;
+  overflow:hidden;
+}
+.progress span{
+  display:block;
+  height:100%;
+  width:0%;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--green),var(--cyan));
+  box-shadow:0 0 18px rgba(0,255,122,.55);
+  animation:boot 2.8s ease forwards;
+}
+.boot-text{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+.status-pill{
+  display:flex;
+  gap:9px;
+  align-items:center;
+  justify-content:center;
+  color:var(--green);
+  background:rgba(0,255,122,.08);
+  border:1px solid rgba(0,255,122,.22);
+  border-radius:999px;
+  padding:10px 15px;
+  font-family:var(--mono);
+  font-size:.75rem;
+  font-weight:700;
+  letter-spacing:.10em;
+  white-space:nowrap;
+}
+.pulse{width:9px;height:9px;border-radius:999px;background:var(--green);box-shadow:0 0 18px var(--green);animation:pulse 1.4s infinite}
+.hero{
+  text-align:center;
+  padding:42px 18px 36px;
+}
+.hero-kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  color:var(--cyan);
+  border:1px solid rgba(0,229,255,.24);
+  background:rgba(0,229,255,.07);
+  border-radius:999px;
+  padding:9px 14px;
+  font-family:var(--mono);
+  font-size:.76rem;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  margin-bottom:18px;
+}
+h1{
+  font-size:clamp(3rem,8vw,7.5rem);
+  line-height:.92;
+  letter-spacing:-.08em;
+  font-weight:900;
+  text-transform:uppercase;
+  background:linear-gradient(180deg,#fff,#bdfde2 70%,var(--green));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  text-shadow:0 0 46px rgba(0,255,122,.18);
+}
+.hero-subtitle{
+  margin-top:18px;
+  color:var(--muted);
+  font-family:var(--mono);
+  font-size:clamp(.82rem,2vw,1rem);
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+.hero-actions{margin-top:24px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.btn{
+  appearance:none;
+  border:0;
+  text-decoration:none;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  min-height:44px;
+  padding:0 18px;
+  border-radius:14px;
+  font-weight:800;
+  font-size:.78rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:#00130b;
+  background:linear-gradient(135deg,var(--green),var(--cyan));
+  box-shadow:0 10px 26px rgba(0,255,122,.18);
+  transition:.22s ease;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 16px 32px rgba(0,255,122,.28)}
+.btn.secondary{
+  color:var(--white);
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:none;
+}
+.grid{
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:20px;
+  margin-top:18px;
+}
+.grid.three{grid-template-columns:repeat(3,1fr)}
+.card{
+  position:relative;
+  border:1px solid var(--line);
+  background:linear-gradient(145deg,rgba(7,18,15,.97),rgba(10,24,21,.95));
+  border-radius:var(--radius);
+  padding:24px;
+  box-shadow:var(--shadow), inset 0 0 0 1px rgba(255,255,255,.025);
+  overflow:hidden;
+}
+.card::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(135deg,rgba(0,229,255,.07),transparent 36%,rgba(0,255,122,.045));
+}
+.card > *{position:relative;z-index:1}
+.card-title{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-family:var(--mono);
+  color:var(--cyan);
+  font-weight:800;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+  font-size:.86rem;
+  margin-bottom:18px;
+}
+.card-title .icon{color:var(--green)}
+.story-label{
+  color:var(--green);
+  font-family:var(--mono);
+  font-size:.76rem;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  padding-bottom:13px;
+  border-bottom:1px solid rgba(0,255,122,.18);
+  margin-bottom:18px;
+}
+.story p{
+  color:#dce9e3;
+  font-size:1rem;
+  line-height:1.85;
+  margin-bottom:18px;
+  text-align:left;
+}
+.story p:last-child{margin-bottom:0}
+.info-list{display:grid;gap:12px}
+.info-item{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:12px;
+  padding:14px;
+  border-radius:18px;
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.075);
+}
+.info-item .icon{color:var(--cyan)}
+.info-label{
+  color:var(--muted-2);
+  font-family:var(--mono);
+  font-size:.72rem;
+  text-transform:uppercase;
+  letter-spacing:.11em;
+  margin-bottom:4px;
+}
+.info-value{font-weight:800;color:var(--white);font-size:.96rem;text-transform:uppercase}
+.mini-btn{
+  text-decoration:none;
+  color:var(--green);
+  border:1px solid rgba(0,255,122,.25);
+  background:rgba(0,255,122,.08);
+  border-radius:12px;
+  padding:9px 12px;
+  font-family:var(--mono);
+  font-size:.70rem;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  transition:.22s ease;
+  white-space:nowrap;
+}
+.mini-btn:hover{background:var(--green);color:#00130b;transform:translateY(-1px)}
+.thais{color:var(--green);font-weight:900;text-shadow:0 0 16px rgba(0,255,122,.28)}
+.status-online{color:var(--green);font-weight:900;font-family:var(--mono)}
+.device-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.device{
+  border-radius:18px;
+  padding:16px;
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.075);
+  min-height:108px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  justify-content:space-between;
+}
+.device-top{display:flex;align-items:center;gap:10px;color:var(--cyan);font-family:var(--mono);font-size:.72rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase}
+.device-value{font-size:1rem;font-weight:800;line-height:1.35;text-transform:uppercase;color:#e9fff5}
+.astro-layout{display:grid;grid-template-columns:260px 1fr;gap:22px;align-items:center}
+.chart-wrap{display:grid;place-items:center}
+.pie{
+  width:220px;height:220px;border-radius:50%;
+  background:conic-gradient(var(--green) 0 34%, var(--cyan) 34% 67%, #b7ffdf 67% 100%);
+  position:relative;
+  box-shadow:0 0 42px rgba(0,255,122,.14), inset 0 0 0 1px rgba(255,255,255,.16);
+}
+.pie::after{
+  content:'ASTRAL';
+  position:absolute;
+  inset:32px;
+  border-radius:50%;
+  display:grid;place-items:center;
+  background:linear-gradient(135deg,#07120f,#0b1b17);
+  color:var(--green);
+  font-family:var(--mono);
+  font-weight:900;
+  font-size:.9rem;
+  letter-spacing:.14em;
+  box-shadow:inset 0 0 20px rgba(0,0,0,.5);
+}
+.legend{display:grid;gap:12px}
+.legend-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  padding:14px;
+  border-radius:18px;
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.075);
+}
+.legend-left{display:flex;align-items:center;gap:10px}
+.dot{width:12px;height:12px;border-radius:50%;background:var(--green);box-shadow:0 0 15px currentColor;color:var(--green)}
+.dot.cyan{background:var(--cyan);color:var(--cyan)}
+.dot.white{background:#b7ffdf;color:#b7ffdf}
+.legend-name{font-weight:900;text-transform:uppercase}
+.legend-role{font-family:var(--mono);font-size:.72rem;color:var(--muted-2);text-transform:uppercase;letter-spacing:.09em}
+.legend-percent{font-family:var(--mono);font-weight:900;color:var(--green)}
+.runtime{text-align:center;padding:26px}
+.clock{
+  font-family:var(--mono);
+  font-size:clamp(1.25rem,4vw,2.5rem);
+  color:#fff;
+  font-weight:900;
+  letter-spacing:.04em;
+  text-shadow:0 0 22px rgba(0,229,255,.18);
+}
+.clock-label{margin-top:10px;color:var(--muted);font-family:var(--mono);font-size:.78rem;text-transform:uppercase;letter-spacing:.12em}
+.footer{
+  margin:24px auto 0;
+  text-align:center;
+  color:rgba(220,233,227,.72);
+  font-family:var(--mono);
+  font-size:.78rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  padding:18px 12px;
+}
+@keyframes boot{0%{width:7%}35%{width:46%}65%{width:82%}100%{width:100%}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.82)}}
+@media(max-width:900px){.grid,.grid.three,.astro-layout{grid-template-columns:1fr}.top-panel{grid-template-columns:1fr}.status-pill{width:max-content}.pie{width:190px;height:190px}.device-grid{grid-template-columns:1fr}}
+@media(max-width:560px){.page{width:min(100% - 22px,1120px);padding-top:14px}.card{padding:18px;border-radius:20px}.top-panel{border-radius:20px}.info-item{grid-template-columns:auto 1fr}.mini-btn{grid-column:2}.hero{padding:30px 10px 26px}}
+</style>
 </head>
 <body>
-  <canvas id="matrixCanvas"></canvas>
-  <div class="screen-overlay"></div>
-
-  <div class="page">
-    <header class="system-bar">
-      <div>
-        <div class="system-title" id="bootTitle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v16H4z"></path><path d="M9 9h6v6H9z"></path><path d="M9 1v3"></path><path d="M15 1v3"></path><path d="M9 20v3"></path><path d="M15 20v3"></path></svg><span>SYSTEM INITIALIZATION</span></div>
-        <div class="loader-track"><div class="loader-fill"></div></div>
-        <div class="boot-lines" id="bootLine">Loading kernel...</div>
+<canvas id="matrixCanvas"></canvas>
+<div class="bg-overlay"></div>
+<div class="page">
+  <section class="top-panel">
+    <div>
+      <div class="boot-title">
+        <span class="icon"><svg viewBox="0 0 24 24"><path d="M4 17h16M7 17V7h10v10M9 21h6"/></svg></span>
+        SYSTEM INITIALIZATION
       </div>
-      <a class="pay-btn" href="https://jarod.com.br/pay" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="M3 10h18"></path><path d="M7 15h3"></path></svg>PAGAMENTO</a>
-    </header>
-
-    <section class="hero">
-      <div class="hero-chips">
-        <div class="chip chip-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="12" rx="2"></rect><path d="M8 21h8"></path><path d="M12 17v4"></path></svg> INTERFACE: XFCE</div>
+      <div class="boot-row">
+        <div class="progress"><span></span></div>
+        <div class="boot-text" id="bootText">LOADING INTERFACE...</div>
       </div>
-      <h1>I AM JAROD</h1>
-      <p>Automação, tecnologia, criatividade e sistemas. Um painel pessoal com identidade Matrix, visual Material Design e organização centralizada.</p>
-    </section>
+    </div>
+    <div class="status-pill"><span class="pulse"></span> SYSTEM ONLINE</div>
+  </section>
 
+  <header class="hero">
+    <div class="hero-kicker"><span class="icon"><svg viewBox="0 0 24 24"><path d="M12 2l2.8 6.3 6.8.7-5.1 4.5 1.5 6.7L12 16.8 6 20.2l1.5-6.7L2.4 9l6.8-.7L12 2z"/></svg></span>HOMO SAPIENS</div>
+    <h1>I Am Jarod</h1>
+    <div class="hero-subtitle">Automation • Systems • XFCE • Matrix Interface</div>
+    <div class="hero-actions">
+      <a class="btn" href="https://jarod.com.br/pay" target="_blank"><span class="icon"><svg viewBox="0 0 24 24"><path d="M3 7h18v10H3zM3 10h18M7 15h3"/></svg></span>PAGAMENTO</a>
+      <a class="btn secondary" href="#identidade"><span class="icon"><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0"/></svg></span>IDENTIDADE</a>
+    </div>
+  </header>
+
+  <main>
     <section class="grid">
-      <article class="card">
-        <h2 class="section-title"><svg viewBox="0 0 24 24"><path d="M4 19.5V5a2 2 0 0 1 2-2h11l3 3v13.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19.5z"></path><path d="M14 3v5h5"></path><path d="M8 13h8"></path><path d="M8 17h6"></path></svg><span>Sobre</span></h2>
-        <div class="about-text scripted-story">
-          <span class="story-kicker">ARQUIVO DESCLASSIFICADO</span>
-
-          <p>NEM TODA HISTÓRIA COMEÇA COM UM NOME. ALGUMAS COMEÇAM COM UMA PERGUNTA.</p>
-
-          <p>NO SILÊNCIO ENTRE UMA TELA ACESA E UM SISTEMA EM EXECUÇÃO, JAROD APRENDEU A ENXERGAR O QUE A MAIORIA IGNORAVA: PADRÕES ESCONDIDOS, PROCESSOS REPETIDOS E FALHAS ESPERANDO PARA SEREM DECIFRADAS.</p>
-
-          <p>ENQUANTO O MUNDO SEGUIA O FLUXO, ELE PREFERIA ABRIR O CÓDIGO DA ROTINA, DESMONTAR CADA ETAPA E RECONSTRUIR TUDO COM MAIS LÓGICA, VELOCIDADE E PRECISÃO.</p>
-
-          <p>COM O TEMPO, A CURIOSIDADE VIROU MÉTODO. O MÉTODO VIROU AUTOMAÇÃO. E A AUTOMAÇÃO SE TORNOU UMA FORMA DE TRANSFORMAR CAOS EM SISTEMA.</p>
-
-          <p>A INVESTIGAÇÃO CONTINUA. PORQUE OS MELHORES SISTEMAS NUNCA TERMINAM DE VERDADE — ELES APENAS AGUARDAM A PRÓXIMA EVOLUÇÃO.</p>
-        </div>
+      <article class="card story">
+        <div class="card-title"><span class="icon"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4zM8 8h8M8 12h8M8 16h5"/></svg></span>SOBRE</div>
+        <div class="story-label">ARQUIVO DESCLASSIFICADO</div>
+        <p>Nem toda história começa com um nome. Algumas começam com uma pergunta — e com a estranha habilidade de perceber padrões escondidos onde todos enxergavam apenas rotina.</p>
+        <p>Enquanto processos se repetiam no escuro, Jarod observava. Cada falha deixava um rastro. Cada tarefa manual revelava uma brecha. E cada brecha se transformava em uma nova oportunidade de reconstruir o sistema por dentro.</p>
+        <p>Com o tempo, a curiosidade virou método. O método virou automação. E a automação passou a conectar tecnologia, estratégia e criatividade em uma única direção: simplificar o complexo antes que ele se torne invisível.</p>
+        <p>A investigação continua. Porque os melhores sistemas nunca estão realmente finalizados — apenas aguardam a próxima evolução.</p>
       </article>
 
-      <article class="card">
-        <h2 class="section-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c1.8-4 5-6 8-6s6.2 2 8 6"></path></svg><span>Identidade</span></h2>
-        <div class="profile-list">
-          <div class="profile-item"><span class="row-label"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="5"></rect><circle cx="12" cy="12" r="3"></circle><path d="M17.5 6.5h.01"></path></svg>Instagram</span><strong class="action-wrap"><a class="network-action" href="https://www.instagram.com/jarodofc" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M7 17L17 7"></path><path d="M7 7h10v10"></path></svg>Abrir perfil</a></strong></div>
-          <div class="profile-item"><span class="row-label"><svg viewBox="0 0 24 24"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5z"></path><path d="M9 9c.5 2 2 3.5 4 4l1.2-1.2 2 1c-.3 1.1-1.2 2.2-2.4 2.2-3.4 0-6.8-3.4-6.8-6.8 0-1.2 1.1-2.1 2.2-2.4l1 2L9 9z"></path></svg>WhatsApp</span><strong class="action-wrap"><a class="network-action" href="https://wa.me/5531999635303" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"></path></svg>Conversar</a></strong></div>
-          <div class="profile-item"><span class="row-label"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M8 11v5"></path><path d="M8 8h.01"></path><path d="M12 16v-5"></path><path d="M12 13c0-1.1.9-2 2-2s2 .9 2 2v3"></path></svg>LinkedIn</span><strong class="action-wrap"><a class="network-action" href="https://www.linkedin.com/in/jarod-m-m-jr-5581b4287/?skipRedirect=true" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M7 17L17 7"></path><path d="M7 7h10v10"></path></svg>Visitar perfil</a></strong></div>
-          <div class="profile-item"><span class="row-label"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.4-9-9a5 5 0 0 1 8-5 5 5 0 0 1 8 5c-2 4.6-9 9-9 9z"></path></svg>Estado civil</span><strong class="network-value mention">CASADO — Thais S.</strong></div>
-          <div class="profile-item"><span class="row-label"><svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"></path></svg>Status</span><strong class="status-online">Online</strong></div>
-        </div>
-      </article>
-    </section>
-
-    <section class="card">
-      <h2 class="section-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="M4.93 4.93l1.41 1.41"></path><path d="M17.66 17.66l1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="M4.93 19.07l1.41-1.41"></path><path d="M17.66 6.34l1.41-1.41"></path></svg><span>Resumo astral</span></h2>
-      <div class="astro-layout">
-        <div class="astro-visual">
-          <div class="pie-wrap" aria-label="Gráfico astral: Escorpião 34%, Áries 33%, Aquário 33%">
-            <div class="chart-label sun-label">Escorpião<br>34%</div>
-            <div class="chart-label asc-label">Áries<br>33%</div>
-            <div class="chart-label moon-label">Aquário<br>33%</div>
-            <div class="pie-center"><strong>3</strong><span>Pilares astrais</span></div>
+      <aside class="card" id="identidade">
+        <div class="card-title"><span class="icon"><svg viewBox="0 0 24 24"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0"/></svg></span>IDENTIDADE</div>
+        <div class="info-list">
+          <div class="info-item">
+            <span class="icon"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="5"/><circle cx="12" cy="12" r="3.2"/><path d="M17.5 6.5h.01"/></svg></span>
+            <div><div class="info-label">Instagram</div><div class="info-value">Perfil oficial</div></div>
+            <a class="mini-btn" href="https://instagram.com/jarodofc" target="_blank">Abrir</a>
           </div>
-          <div class="chart-caption">Sol, ascendente e lua em equilíbrio visual.</div>
+          <div class="info-item">
+            <span class="icon"><svg viewBox="0 0 24 24"><path d="M20 11.5a8 8 0 0 1-11.9 7L4 20l1.5-4A8 8 0 1 1 20 11.5z"/><path d="M9 9c.5 2 2 3.5 4 4l1.4-1.1 1.8.7-.4 2c-.1.5-.6.9-1.1.8-4-.7-7.3-4-8.1-8 0-.5.3-1 .8-1.1l2-.4.7 1.8L9 9z"/></svg></span>
+            <div><div class="info-label">WhatsApp</div><div class="info-value">Contato direto</div></div>
+            <a class="mini-btn" href="https://wa.me/5531999635303" target="_blank">Conversar</a>
+          </div>
+          <div class="info-item">
+            <span class="icon"><svg viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v6h-4v-6a2 2 0 0 0-4 0v6h-4V9h4v2a4 4 0 0 1 2-3zM2 9h4v11H2zM4 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg></span>
+            <div><div class="info-label">LinkedIn</div><div class="info-value">Rede profissional</div></div>
+            <a class="mini-btn" href="https://www.linkedin.com/in/jarod-m-m-jr-5581b4287/" target="_blank">Visitar</a>
+          </div>
+          <div class="info-item">
+            <span class="icon"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></span>
+            <div><div class="info-label">Estado civil</div><div class="info-value">Casado • <span class="thais">Thais S.</span></div></div>
+          </div>
+          <div class="info-item">
+            <span class="icon"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>
+            <div><div class="info-label">Status</div><div class="status-online">ONLINE</div></div>
+          </div>
         </div>
-        <div class="astro-list">
-          <div class="astro-item"><span class="dot sun"></span><div><span>Sol</span><br><strong>Escorpião</strong></div><em>34%</em></div>
-          <div class="astro-item"><span class="dot asc"></span><div><span>Ascendente</span><br><strong>Áries</strong></div><em>33%</em></div>
-          <div class="astro-item"><span class="dot moon"></span><div><span>Lua</span><br><strong>Aquário</strong></div><em>33%</em></div>
-        </div>
-      </div>
+      </aside>
     </section>
 
-    <section class="grid">
+    <section class="grid three" style="margin-top:20px;">
       <article class="card">
-        <h2 class="section-title"><svg viewBox="0 0 24 24"><path d="M4 19V5"></path><path d="M4 19h16"></path><path d="M8 16V9"></path><path d="M12 16V6"></path><path d="M16 16v-4"></path></svg><span>Perfil operacional</span></h2>
-        <div class="skills">
-          <div class="skill-row"><div class="skill-head"><span><svg viewBox="0 0 24 24"><path d="M12 2l2.2 6.8H21l-5.5 4 2.1 6.8L12 15.4 6.4 19.6l2.1-6.8L3 8.8h6.8z"></path></svg>Criatividade</span><strong>96%</strong></div><div class="skill-bar"><i style="--w:96%"></i></div></div>
-          <div class="skill-row"><div class="skill-head"><span><svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"></path><path d="M4 12H2"></path><path d="M22 12h-2"></path><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="M5 5l1.5 1.5"></path><path d="M17.5 17.5L19 19"></path></svg>Automação</span><strong>92%</strong></div><div class="skill-bar"><i style="--w:92%"></i></div></div>
-          <div class="skill-row"><div class="skill-head"><span><svg viewBox="0 0 24 24"><path d="M7 8l-4 4 4 4"></path><path d="M17 8l4 4-4 4"></path><path d="M14 4l-4 16"></path></svg>Tecnologia</span><strong>94%</strong></div><div class="skill-bar"><i style="--w:94%"></i></div></div>
-          <div class="skill-row"><div class="skill-head"><span><svg viewBox="0 0 24 24"><path d="M4 19l6-6"></path><path d="M14 5l5 5"></path><path d="M14 5v5h5"></path><path d="M10 13l4-8"></path></svg>Estratégia</span><strong>88%</strong></div><div class="skill-bar"><i style="--w:88%"></i></div></div>
+        <div class="card-title"><span class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span>AMBIENTE</div>
+        <div class="device-grid">
+          <div class="device"><div class="device-top"><span class="icon"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H4zM8 20h8"/></svg></span>SYSTEM</div><div class="device-value">DeepinOS</div></div>
+          <div class="device"><div class="device-top"><span class="icon"><svg viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg></span>INTERFACE</div><div class="device-value">XFCE</div></div>
+          <div class="device"><div class="device-top"><span class="icon"><svg viewBox="0 0 24 24"><path d="M7 8h10v11a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2zM9 8 8 5M15 8l1-3M9 12h.01M15 12h.01"/></svg></span>ANDROID</div><div class="device-value">Samsung Galaxy S23 Ultra</div></div>
+          <div class="device"><div class="device-top"><span class="icon"><svg viewBox="0 0 24 24"><path d="M16 13c0 4 3 5 3 5s-2 4-5 4c-1.5 0-2-.8-3.4-.8-1.3 0-2 .8-3.4.8C4 22 2 17 2 13.5 2 10 4.2 8 6.8 8c1.5 0 2.4.9 3.4.9S12 8 13.8 8c.8 0 2.7.2 4.2 2.1-1 .6-2 1.5-2 2.9zM14 2c.2 1.6-.8 3.3-2.7 3.8C11 4.1 12.1 2.4 14 2z"/></svg></span>APPLE</div><div class="device-value">iPhone Pro Max</div></div>
         </div>
       </article>
 
-      <article class="card">
-        <h2 class="section-title"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg><span>Tempo de execução</span></h2>
-        <div class="clock" id="lifeClock">Calculando...</div>
+      <article class="card" style="grid-column:span 2;">
+        <div class="card-title"><span class="icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20M5 5l14 14M19 5 5 19"/></svg></span>RESUMO ASTRAL</div>
+        <div class="astro-layout">
+          <div class="chart-wrap"><div class="pie"></div></div>
+          <div class="legend">
+            <div class="legend-item"><div class="legend-left"><span class="dot"></span><div><div class="legend-name">Escorpião</div><div class="legend-role">Sol • Essência</div></div></div><div class="legend-percent">34%</div></div>
+            <div class="legend-item"><div class="legend-left"><span class="dot cyan"></span><div><div class="legend-name">Áries</div><div class="legend-role">Ascendente • Presença</div></div></div><div class="legend-percent">33%</div></div>
+            <div class="legend-item"><div class="legend-left"><span class="dot white"></span><div><div class="legend-name">Aquário</div><div class="legend-role">Lua • Instinto</div></div></div><div class="legend-percent">33%</div></div>
+          </div>
+        </div>
       </article>
     </section>
 
-
-    <section class="card">
-      <h2 class="section-title"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"></rect><path d="M8 21h8"></path><path d="M12 17v4"></path></svg><span>Ambiente / Dispositivos</span></h2>
-      <div class="device-grid">
-        <div class="device-item icon-row">
-          <div class="device-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"></rect><path d="M8 21h8"></path><path d="M12 17v4"></path></svg></div>
-          <div><span>Sistema operacional</span><strong>DeepinOS</strong></div>
-        </div>
-        <div class="device-item icon-row">
-          <div class="device-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="3"></rect><path d="M9 2l1.5 2"></path><path d="M15 2l-1.5 2"></path><path d="M9 18h.01"></path><path d="M15 18h.01"></path></svg></div>
-          <div><span>Interface</span><strong>XFCE</strong></div>
-        </div>
-        <div class="device-item icon-row">
-          <div class="device-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"></rect><path d="M11 18h2"></path></svg></div>
-          <div><span>Device Android</span><strong>Samsung Galaxy S23 Ultra</strong></div>
-        </div>
-        <div class="device-item icon-row">
-          <div class="device-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15.5 3.5c-.8.8-1.4 1.7-1.2 3"></path><path d="M18.5 9.8c-1.8-1-3.1-.3-4 .1-.9.4-1.6.4-2.5 0-1-.5-2.3-1-4 .1-2.1 1.4-2.6 5.3-.8 8.5 1 1.8 2.1 3.5 3.7 3.5 1 0 1.4-.5 2.7-.5s1.7.5 2.8.5c1.6 0 2.6-1.6 3.6-3.4.7-1.3 1-2.5 1-2.6-2.5-1-2.8-4.4-.5-6.2z"></path></svg></div>
-          <div><span>Device Apple</span><strong>iPhone Pro Max</strong></div>
-        </div>
-        <div class="device-item icon-row">
-          <div class="device-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 7h10v10H7z"></path><path d="M4 4h16v16H4z"></path><path d="M9 1v3"></path><path d="M15 1v3"></path><path d="M9 20v3"></path><path d="M15 20v3"></path></svg></div>
-          <div><span>ROM Android</span><strong>AOSP Extended AEX</strong></div>
-        </div>
-      </div>
+    <section class="card runtime" style="margin-top:20px;">
+      <div class="card-title" style="justify-content:center;margin-bottom:14px;"><span class="icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>TEMPO DE EXECUÇÃO TERRESTRE</div>
+      <div class="clock" id="lifeClock">CALCULANDO...</div>
+      <div class="clock-label">Runtime iniciado em 15/11/1999</div>
     </section>
+  </main>
 
-    <footer class="footer">
-      <p><span class="row-label"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M15 9a4 4 0 1 0 0 6"></path></svg>Copyright © 2026 JAROD, L.L.C.</span></p>
-    </footer>
-  </div>
-
-  <script>
-    const canvas = document.getElementById('matrixCanvas');
-    const ctx = canvas.getContext('2d');
-    const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
-    const fontSize = 16;
-    let columns = 0;
-    let drops = [];
-
-    function resizeMatrix() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      columns = Math.floor(canvas.width / fontSize);
-      drops = Array.from({ length: columns }, () => Math.floor(Math.random() * canvas.height / fontSize));
-    }
-
-    function drawMatrix() {
-      ctx.fillStyle = 'rgba(2, 4, 3, 0.085)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#00ff66';
-      ctx.font = fontSize + 'px Consolas, monospace';
-
-      for (let i = 0; i < drops.length; i++) {
-        const text = chars[Math.floor(Math.random() * chars.length)];
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
-        drops[i]++;
-      }
-    }
-
-    resizeMatrix();
-    setInterval(drawMatrix, 38);
-    window.addEventListener('resize', resizeMatrix);
-
-    const bootTitle = document.getElementById('bootTitle');
-    const bootLine = document.getElementById('bootLine');
-    const bootMessages = [
-      'Loading kernel...',
-      'Loading user profile...',
-      'Loading interface...',
-      'Authenticating Homo sapiens...',
-      'System online.'
-    ];
-    let bootIndex = 0;
-    const bootTimer = setInterval(() => {
-      bootIndex++;
-      bootLine.textContent = bootMessages[Math.min(bootIndex, bootMessages.length - 1)];
-      if (bootIndex >= bootMessages.length - 1) {
-        bootTitle.textContent = 'SYSTEM ONLINE';
-        clearInterval(bootTimer);
-      }
-    }, 700);
-
-    function updateLifeClock() {
-      const birthDate = new Date('1999-11-15T00:00:00');
-      const now = new Date();
-      const diff = now - birthDate;
-      const seconds = Math.floor(diff / 1000);
-      const minutes = Math.floor(seconds / 60);
-      const hours = Math.floor(minutes / 60);
-      const days = Math.floor(hours / 24);
-      const years = Math.floor(days / 365.25);
-      const remDays = Math.floor(days % 365.25);
-      const remHours = hours % 24;
-      const remMinutes = minutes % 60;
-      const remSeconds = seconds % 60;
-      document.getElementById('lifeClock').textContent =
-        `${years}A ${remDays}D ${String(remHours).padStart(2, '0')}H ${String(remMinutes).padStart(2, '0')}M ${String(remSeconds).padStart(2, '0')}S`;
-    }
-    updateLifeClock();
-    setInterval(updateLifeClock, 1000);
-
-    document.addEventListener('contextmenu', event => event.preventDefault());
-  </script>
+  <footer class="footer">Copyright © 2026 JAROD, L.L.C.</footer>
+</div>
+<script>
+const canvas=document.getElementById('matrixCanvas');
+const ctx=canvas.getContext('2d');
+let width,height,columns,drops,fontSize=17;
+const chars='アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワ0123456789JARODXFCE';
+function resize(){width=canvas.width=window.innerWidth;height=canvas.height=window.innerHeight;columns=Math.floor(width/fontSize);drops=Array(columns).fill(1)}
+function draw(){ctx.fillStyle='rgba(1,4,3,0.10)';ctx.fillRect(0,0,width,height);ctx.font=fontSize+'px JetBrains Mono, monospace';for(let i=0;i<drops.length;i++){const text=chars[Math.floor(Math.random()*chars.length)];ctx.fillStyle=Math.random()>.975?'rgba(0,229,255,.95)':'rgba(0,255,122,.68)';ctx.fillText(text,i*fontSize,drops[i]*fontSize);if(drops[i]*fontSize>height&&Math.random()>.985)drops[i]=0;drops[i]++}}
+resize();setInterval(draw,45);window.addEventListener('resize',resize);
+const bootTexts=['LOADING KERNEL...','LOADING PROFILE...','LOADING INTERFACE XFCE...','AUTHENTICATING...','SYSTEM ONLINE'];
+let bootIndex=0;setInterval(()=>{bootIndex=(bootIndex+1)%bootTexts.length;document.getElementById('bootText').textContent=bootTexts[bootIndex]},900);
+function updateLifeClock(){const birth=new Date('1999-11-15T00:00:00');const now=new Date();const diff=now-birth;const seconds=Math.floor(diff/1000);const minutes=Math.floor(seconds/60);const hours=Math.floor(minutes/60);const days=Math.floor(hours/24);const years=Math.floor(days/365.25);const dayR=Math.floor(days%365.25);const h=hours%24;const m=minutes%60;const s=seconds%60;document.getElementById('lifeClock').textContent=`${years}A ${dayR}D ${String(h).padStart(2,'0')}H ${String(m).padStart(2,'0')}M ${String(s).padStart(2,'0')}S`}
+setInterval(updateLifeClock,1000);updateLifeClock();
+document.addEventListener('contextmenu',e=>e.preventDefault());
+</script>
 </body>
 </html>
