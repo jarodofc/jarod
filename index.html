@@ -14,8 +14,8 @@
       --glass: rgba(8, 18, 16, 0.72);
       --glass-strong: rgba(5, 14, 13, 0.88);
       --border: rgba(0, 255, 102, 0.22);
-      --text: #f5fff8;
-      --muted: #9bb7aa;
+      --text: #ecfff4;
+      --muted: #b8c9c0;
       --shadow: 0 24px 80px rgba(0, 0, 0, 0.65);
       --radius: 24px;
       --mono: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
@@ -31,6 +31,8 @@
       background: var(--bg);
       color: var(--text);
       font-family: var(--sans);
+      font-size: 16px;
+      letter-spacing: 0.01em;
       overflow-x: hidden;
     }
 
@@ -93,7 +95,7 @@
     .system-title {
       font-family: var(--mono);
       color: var(--matrix);
-      font-size: 0.86rem;
+      font-size: 0.8rem;
       letter-spacing: 1.8px;
       text-transform: uppercase;
       margin-bottom: 10px;
@@ -119,7 +121,7 @@
 
     .boot-lines {
       font-family: var(--mono);
-      font-size: 0.76rem;
+      font-size: 0.74rem;
       color: var(--muted);
       margin-top: 10px;
       min-height: 18px;
@@ -158,23 +160,23 @@
       font-family: var(--mono);
       padding: 8px 13px;
       border-radius: 999px;
-      font-size: 0.76rem;
+      font-size: 0.74rem;
       letter-spacing: 1px;
       text-transform: uppercase;
       margin-bottom: 18px;
     }
 
     .hero h1 {
-      font-size: clamp(3rem, 8vw, 6rem);
+      font-size: clamp(2.9rem, 7vw, 5.35rem);
       line-height: 0.94;
-      letter-spacing: -3px;
+      letter-spacing: -2px;
       text-shadow: 0 0 28px rgba(0, 255, 102, 0.35);
       margin-bottom: 16px;
     }
 
     .hero p {
-      color: var(--muted);
-      font-size: clamp(1rem, 2vw, 1.18rem);
+      color: #c6d8cf;
+      font-size: clamp(0.98rem, 1.7vw, 1.12rem);
       max-width: 640px;
       margin: 0 auto;
       line-height: 1.7;
@@ -188,21 +190,55 @@
       align-items: stretch;
     }
 
-    .card { padding: 26px; }
+    .card { padding: 28px; }
+
+    .card, .hero, .system-bar, .footer {
+      color: var(--text);
+    }
 
     .card h2 {
       font-family: var(--mono);
       color: var(--matrix);
-      font-size: 0.95rem;
+      font-size: 0.88rem;
       letter-spacing: 1.8px;
       text-transform: uppercase;
       margin-bottom: 16px;
     }
 
     .about-text {
-      color: #d9eee2;
-      line-height: 1.75;
+      color: #dcefe6;
+      line-height: 1.85;
       font-size: 0.98rem;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+    }
+
+    .scripted-story {
+      display: grid;
+      gap: 16px;
+      text-align: left;
+    }
+
+    .scripted-story p {
+      margin: 0;
+      color: #d8efe4;
+      line-height: 1.9;
+      font-size: clamp(0.94rem, 1.1vw, 1.04rem);
+    }
+
+    .story-kicker {
+      display: inline-flex;
+      width: fit-content;
+      color: var(--matrix);
+      background: rgba(0, 255, 102, 0.08);
+      border: 1px solid rgba(0, 255, 102, 0.18);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      box-shadow: inset 0 0 18px rgba(0, 255, 102, 0.04);
     }
 
     .profile-list {
@@ -219,7 +255,7 @@
       color: var(--muted);
     }
 
-    .profile-item strong { color: #fff; text-align: right; }
+    .profile-item strong { color: #f4fff8; text-align: right; font-weight: 800; }
 
     .astro-layout {
       display: grid;
@@ -387,7 +423,7 @@
       display: flex;
       justify-content: space-between;
       color: #d7eee1;
-      font-size: 0.9rem;
+      font-size: 0.92rem;
     }
 
     .skill-bar {
@@ -409,7 +445,7 @@
     .clock {
       font-family: var(--mono);
       text-align: center;
-      font-size: clamp(1.3rem, 4vw, 2.2rem);
+      font-size: clamp(1.25rem, 3.2vw, 2rem);
       color: #fff;
       padding: 20px;
       border-radius: 20px;
@@ -501,14 +537,14 @@
       justify-content: center;
       text-align: center;
       font-family: var(--mono);
-      color: rgba(245,255,248,0.72);
-      font-size: 0.82rem;
+      color: rgba(236,255,244,0.7);
+      font-size: 0.8rem;
       letter-spacing: 1px;
       text-transform: uppercase;
     }
 
     .footer p {
-      color: rgba(245,255,248,0.72);
+      color: rgba(236,255,244,0.7);
       font-weight: 700;
       word-break: break-word;
     }
@@ -605,16 +641,26 @@
 
     <section class="hero">
       <div class="chip">INTERFACE: HOMO SAPIENS</div>
-      <h1>I Am Jarod</h1>
+      <h1>I AM JAROD</h1>
       <p>Automação, tecnologia, criatividade e sistemas. Um painel pessoal com identidade Matrix, visual Material Design e organização centralizada.</p>
     </section>
 
     <section class="grid">
       <article class="card">
         <h2>> Sobre</h2>
-        <p class="about-text">
-          Jarod M M Jr. opera como um construtor de processos, interfaces e soluções digitais. Perfil orientado por curiosidade, criação de sistemas, automação de rotinas e busca por estruturas inteligentes para transformar ideias em execução.
-        </p>
+        <div class="about-text scripted-story">
+          <span class="story-kicker">ARQUIVO DESCLASSIFICADO // SUJEITO: JAROD M M JR</span>
+
+          <p>NEM TODA HISTÓRIA COMEÇA COM UM NOME. ALGUMAS COMEÇAM COM UMA PERGUNTA.</p>
+
+          <p>NO SILÊNCIO ENTRE UMA TELA ACESA E UM SISTEMA EM EXECUÇÃO, JAROD APRENDEU A ENXERGAR O QUE A MAIORIA IGNORAVA: PADRÕES ESCONDIDOS, PROCESSOS REPETIDOS E FALHAS ESPERANDO PARA SEREM DECIFRADAS.</p>
+
+          <p>ENQUANTO O MUNDO SEGUIA O FLUXO, ELE PREFERIA ABRIR O CÓDIGO DA ROTINA, DESMONTAR CADA ETAPA E RECONSTRUIR TUDO COM MAIS LÓGICA, VELOCIDADE E PRECISÃO.</p>
+
+          <p>COM O TEMPO, A CURIOSIDADE VIROU MÉTODO. O MÉTODO VIROU AUTOMAÇÃO. E A AUTOMAÇÃO SE TORNOU UMA FORMA DE TRANSFORMAR CAOS EM SISTEMA.</p>
+
+          <p>A INVESTIGAÇÃO CONTINUA. PORQUE OS MELHORES SISTEMAS NUNCA TERMINAM DE VERDADE — ELES APENAS AGUARDAM A PRÓXIMA EVOLUÇÃO.</p>
+        </div>
       </article>
 
       <article class="card">
@@ -622,7 +668,8 @@
         <div class="profile-list">
           <div class="profile-item"><span>Instagram</span><strong class="action-wrap"><span class="network-value">@jarodofc</span><a class="network-action" href="https://www.instagram.com/jarodofc" target="_blank" rel="noopener">Abrir</a></strong></div>
           <div class="profile-item"><span>WhatsApp</span><strong class="action-wrap"><span class="network-value">+55 31 9 9963-5303</span><a class="network-action" href="https://wa.me/5531999635303" target="_blank" rel="noopener">Conversar</a></strong></div>
-          <div class="profile-item"><span>LinkedIn</span><strong class="action-wrap"><span class="network-value">Jarod M M Jr.</span><a class="network-action" href="https://www.linkedin.com/in/jarod-m-m-jr-5581b4287/?skipRedirect=true" target="_blank" rel="noopener">Visitar</a></strong></div>
+          <div class="profile-item"><span>LinkedIn</span><strong class="action-wrap"><span class="network-value">Jarod M M Jr</span><a class="network-action" href="https://www.linkedin.com/in/jarod-m-m-jr-5581b4287/?skipRedirect=true" target="_blank" rel="noopener">Visitar</a></strong></div>
+          <div class="profile-item"><span>Estado civil</span><strong class="network-value">CASADO (Thais S.)</strong></div>
           <div class="profile-item"><span>Status</span><strong class="status-online">Online</strong></div>
         </div>
       </article>
@@ -677,7 +724,7 @@
     </section>
 
     <footer class="footer">
-      <p>Copyright© 2026 JAROD, L.L.C.</p>
+      <p>Copyright © 2026 JAROD, L.L.C.</p>
     </footer>
   </div>
 
