@@ -611,8 +611,49 @@
       line-height: 1.35;
     }
 
+    .hero-chips {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .icon-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .device-icon {
+      position: relative;
+      z-index: 1;
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      color: var(--matrix);
+      background: rgba(0, 255, 102, 0.08);
+      border: 1px solid rgba(0, 255, 102, 0.18);
+      box-shadow: inset 0 0 18px rgba(0, 255, 102, 0.04);
+      flex: 0 0 auto;
+    }
+
+    .device-icon svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      stroke-width: 1.9;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
     @media (max-width: 560px) {
       .device-grid { grid-template-columns: 1fr; }
+      .hero-chips { justify-content: center; }
     }
 
     @media (max-width: 850px) {
@@ -640,7 +681,10 @@
     </header>
 
     <section class="hero">
-      <div class="chip">INTERFACE: HOMO SAPIENS</div>
+      <div class="hero-chips">
+        <div class="chip">INTERFACE: HOMO SAPIENS</div>
+        <div class="chip">INTERFACE: XFCE</div>
+      </div>
       <h1>I AM JAROD</h1>
       <p>Automação, tecnologia, criatividade e sistemas. Um painel pessoal com identidade Matrix, visual Material Design e organização centralizada.</p>
     </section>
@@ -649,7 +693,7 @@
       <article class="card">
         <h2>> Sobre</h2>
         <div class="about-text scripted-story">
-          <span class="story-kicker">ARQUIVO DESCLASSIFICADO // SUJEITO: JAROD M M JR</span>
+          <span class="story-kicker">ARQUIVO DESCLASSIFICADO</span>
 
           <p>NEM TODA HISTÓRIA COMEÇA COM UM NOME. ALGUMAS COMEÇAM COM UMA PERGUNTA.</p>
 
@@ -716,10 +760,26 @@
     <section class="card">
       <h2>> Ambiente / Dispositivos</h2>
       <div class="device-grid">
-        <div class="device-item"><span>Sistema operacional</span><strong>DeepinOS</strong></div>
-        <div class="device-item"><span>ROM Android</span><strong>AOSP Extended AEX</strong></div>
-        <div class="device-item"><span>Device Android</span><strong>Samsung Galaxy S23 Ultra</strong></div>
-        <div class="device-item"><span>Device Apple</span><strong>iPhone Pro Max</strong></div>
+        <div class="device-item icon-row">
+          <div class="device-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"></rect><path d="M8 21h8"></path><path d="M12 17v4"></path></svg></div>
+          <div><span>Sistema operacional</span><strong>DeepinOS</strong></div>
+        </div>
+        <div class="device-item icon-row">
+          <div class="device-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="3"></rect><path d="M9 2l1.5 2"></path><path d="M15 2l-1.5 2"></path><path d="M9 18h.01"></path><path d="M15 18h.01"></path></svg></div>
+          <div><span>Interface</span><strong>XFCE</strong></div>
+        </div>
+        <div class="device-item icon-row">
+          <div class="device-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2"></rect><path d="M11 18h2"></path></svg></div>
+          <div><span>Device Android</span><strong>Samsung Galaxy S23 Ultra</strong></div>
+        </div>
+        <div class="device-item icon-row">
+          <div class="device-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15.5 3.5c-.8.8-1.4 1.7-1.2 3"></path><path d="M18.5 9.8c-1.8-1-3.1-.3-4 .1-.9.4-1.6.4-2.5 0-1-.5-2.3-1-4 .1-2.1 1.4-2.6 5.3-.8 8.5 1 1.8 2.1 3.5 3.7 3.5 1 0 1.4-.5 2.7-.5s1.7.5 2.8.5c1.6 0 2.6-1.6 3.6-3.4.7-1.3 1-2.5 1-2.6-2.5-1-2.8-4.4-.5-6.2z"></path></svg></div>
+          <div><span>Device Apple</span><strong>iPhone Pro Max</strong></div>
+        </div>
+        <div class="device-item icon-row">
+          <div class="device-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 7h10v10H7z"></path><path d="M4 4h16v16H4z"></path><path d="M9 1v3"></path><path d="M15 1v3"></path><path d="M9 20v3"></path><path d="M15 20v3"></path></svg></div>
+          <div><span>ROM Android</span><strong>AOSP Extended AEX</strong></div>
+        </div>
       </div>
     </section>
 
