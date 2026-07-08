@@ -1,0 +1,1999 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Controle de Veículos | MER Seminovos</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #050505;
+      --bg2: #111111;
+      --card: rgba(255,255,255,.075);
+      --card2: rgba(255,255,255,.11);
+      --border: rgba(255,255,255,.14);
+      --text: #f8fafc;
+      --muted: #a8b3c7;
+      --yellow: #facc15;
+      --yellow2: #f59e0b;
+      --red: #ef4444;
+      --blue: #60a5fa;
+      --green: #22c55e;
+      --shadow: 0 22px 70px rgba(0,0,0,.42);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Inter, Segoe UI, Arial, sans-serif;
+      background:
+        radial-gradient(circle at 10% 5%, rgba(250,204,21,.18), transparent 28%),
+        radial-gradient(circle at 90% 0%, rgba(245,158,11,.14), transparent 34%),
+        linear-gradient(135deg, var(--bg), var(--bg2));
+    }
+
+    button, input, select { font: inherit; }
+
+    .page {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 20px 16px 42px;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .eyebrow {
+      margin: 0 0 6px;
+      color: var(--yellow);
+      font-size: .72rem;
+      font-weight: 900;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      margin-bottom: 6px;
+      font-size: clamp(1.7rem, 4vw, 3rem);
+      letter-spacing: -.04em;
+      line-height: 1;
+    }
+
+    h2 { margin-bottom: 6px; font-size: 1.25rem; }
+    h3 { margin-bottom: 8px; font-size: 1rem; }
+
+    .subtitle {
+      margin: 0;
+      max-width: 790px;
+      color: var(--muted);
+      font-size: .92rem;
+      line-height: 1.45;
+    }
+
+    .brand {
+      min-width: 200px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px;
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--yellow), var(--yellow2));
+      box-shadow: 0 0 26px rgba(250,204,21,.40);
+    }
+
+    .brand strong, .brand small { display: block; }
+    .brand small { color: var(--muted); font-size: .78rem; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 320px minmax(0, 1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .side {
+      position: sticky;
+      top: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .main { display: grid; gap: 14px; }
+
+    .card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--card);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .box { padding: 15px; }
+
+    .help {
+      color: var(--muted);
+      font-size: .82rem;
+      line-height: 1.45;
+      margin-bottom: 12px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .stat {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(255,255,255,.07);
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: .74rem;
+      line-height: 1.2;
+    }
+
+    .stat strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 1.05rem;
+      letter-spacing: -.02em;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1.25fr .65fr .7fr .76fr .64fr .9fr .95fr;
+      gap: 9px;
+      align-items: end;
+    }
+
+    .field { display: grid; gap: 6px; margin-bottom: 9px; }
+
+    label {
+      color: var(--muted);
+      font-size: .78rem;
+      font-weight: 800;
+    }
+
+    input, select {
+      width: 100%;
+      min-height: 38px;
+      padding: 8px 10px;
+      border-radius: 11px;
+      border: 1px solid var(--border);
+      outline: none;
+      color: var(--text);
+      background: rgba(255,255,255,.09);
+    }
+
+    select option { color: #111; }
+
+    input:focus, select:focus {
+      border-color: rgba(250,204,21,.85);
+      box-shadow: 0 0 0 3px rgba(250,204,21,.16);
+    }
+
+    .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+    .btn {
+      border: 0;
+      min-height: 38px;
+      padding: 8px 12px;
+      border-radius: 11px;
+      cursor: pointer;
+      color: var(--text);
+      font-weight: 900;
+      font-size: .86rem;
+      transition: transform .15s ease, opacity .15s ease;
+    }
+
+    .btn:hover { transform: translateY(-1px); opacity: .94; }
+
+    .primary {
+      color: #111;
+      background: linear-gradient(135deg, var(--yellow), var(--yellow2));
+    }
+
+    .secondary { background: rgba(255,255,255,.10); border: 1px solid var(--border); }
+    .danger { color: #fecaca; background: rgba(239,68,68,.16); border: 1px solid rgba(239,68,68,.34); }
+    .blue { color: #07121f; background: var(--blue); }
+    .green { color: #052e16; background: var(--green); }
+
+    .mini {
+      min-height: 30px;
+      padding: 6px 9px;
+      border-radius: 9px;
+      font-size: .75rem;
+    }
+
+    .supplier-list { display: grid; gap: 7px; margin-top: 10px; }
+
+    .supplier-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 9px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255,255,255,.07);
+      font-size: .82rem;
+    }
+
+    .supplier-item button {
+      border: 0;
+      color: #fecaca;
+      background: rgba(239,68,68,.14);
+      border: 1px solid rgba(239,68,68,.32);
+      border-radius: 9px;
+      padding: 5px 8px;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: .72rem;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 7px;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      background: rgba(255,255,255,.06);
+      width: fit-content;
+    }
+
+    .tab {
+      border: 0;
+      padding: 8px 12px;
+      border-radius: 11px;
+      color: var(--muted);
+      background: transparent;
+      cursor: pointer;
+      font-weight: 900;
+      font-size: .84rem;
+    }
+
+    .tab.active {
+      color: #111;
+      background: linear-gradient(135deg, var(--yellow), var(--yellow2));
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .filters input { width: min(330px, 100vw); }
+    .filters select { width: 178px; }
+
+    .table-section { display: none; }
+    .table-section.active { display: block; }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .section-title p {
+      color: var(--muted);
+      font-size: .83rem;
+      margin-bottom: 0;
+      line-height: 1.4;
+      max-width: 760px;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1080px;
+    }
+
+    th, td {
+      padding: 9px 8px;
+      text-align: left;
+      vertical-align: middle;
+      border-bottom: 1px solid rgba(255,255,255,.09);
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      color: #fff4bd;
+      font-size: .68rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      background: rgba(6,6,6,.97);
+    }
+
+    td {
+      color: #edf2f7;
+      font-size: .84rem;
+    }
+
+    .vehicle-title {
+      max-width: 260px;
+      font-weight: 900;
+      line-height: 1.25;
+    }
+
+    .person-text {
+      max-width: 180px;
+      color: #dbe4f0;
+      line-height: 1.25;
+    }
+
+    .money {
+      font-weight: 900;
+      color: #fff4bd;
+      white-space: nowrap;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 46px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      font-size: .68rem;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .pill.sim { color: #111; background: rgba(250,204,21,.96); }
+    .pill.nao { color: #111; background: rgba(245,158,11,.90); }
+    .pill.estoque { color: #052e16; background: #86efac; }
+    .pill.vendido { color: #111827; background: #93c5fd; }
+    .pill.cancelado { color: #450a0a; background: #fca5a5; }
+
+    .empty {
+      padding: 26px !important;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .status-select {
+      min-width: 116px;
+      min-height: 32px;
+      font-size: .76rem;
+      padding: 5px 8px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-width: 180px;
+    }
+
+    .progress-compact {
+      min-width: 220px;
+      max-width: 250px;
+    }
+
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .progress-label strong {
+      color: var(--text);
+      font-size: .72rem;
+      max-width: 165px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .progress-track {
+      height: 9px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.10);
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--yellow), var(--yellow2));
+      transition: width .25s ease;
+    }
+
+    .step-line {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .step-line select {
+      min-height: 30px;
+      font-size: .72rem;
+      padding: 4px 6px;
+      border-radius: 9px;
+    }
+
+    .alert {
+      display: none;
+      margin: 10px 0 0;
+      padding: 10px 12px;
+      border-radius: 13px;
+      color: #fed7aa;
+      background: rgba(251,146,60,.13);
+      border: 1px solid rgba(251,146,60,.35);
+      font-weight: 800;
+      font-size: .82rem;
+      line-height: 1.4;
+    }
+
+    .alert.show { display: block; }
+
+    .panel-box {
+      display: grid;
+      gap: 9px;
+      padding: 12px;
+      border: 1px dashed rgba(255,255,255,.24);
+      border-radius: 15px;
+      background: rgba(255,255,255,.05);
+    }
+
+    @media (max-width: 1120px) {
+      .layout { grid-template-columns: 1fr; }
+      .side { position: static; }
+      .form-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 720px) {
+      .top { align-items: flex-start; flex-direction: column; }
+      .brand { width: 100%; }
+      .form-grid, .stats { grid-template-columns: 1fr; }
+      .toolbar, .section-title { flex-direction: column; }
+      .tabs, .filters, .filters input, .filters select { width: 100%; }
+      .tab { flex: 1; }
+    }
+
+    @media print {
+      body { background: #fff; color: #111; }
+      .top, .side, .form-card, .toolbar .filters, .export-actions, .actions, .tabs, .status-select, .step-line {
+        display: none !important;
+      }
+      .page { max-width: none; padding: 0; }
+      .layout { display: block; }
+      .card { border: 0; box-shadow: none; background: #fff; }
+      .table-section { display: block; margin-bottom: 24px; }
+      th, td { color: #111; border: 1px solid #ddd; }
+      th { background: #eee; }
+      .money, .vehicle-title, .person-text { color: #111; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <header class="top">
+      <div>
+        <p class="eyebrow">Controle administrativo</p>
+        <h1>Controle de Veículos</h1>
+        <p class="subtitle">
+          Dados separados por campo, importação corrigida e layout otimizado. Controle o veículo como
+          <strong>Estoque</strong>, <strong>Vendido</strong> ou <strong>Cancelado</strong>, sem misturar modelo, pessoa e valores.
+        </p>
+      </div>
+
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <strong>MER Seminovos</strong>
+          <small>Painel interno</small>
+        </div>
+      </div>
+    </header>
+
+    <section class="layout">
+      <aside class="side">
+        <div class="card box">
+          <p class="eyebrow">Resumo</p>
+          <div class="stats">
+            <div class="stat"><span>Em estoque</span><strong id="statStock">0</strong></div>
+            <div class="stat"><span>Vendidos</span><strong id="statSold">0</strong></div>
+            <div class="stat"><span>Cancelados</span><strong id="statCanceled">0</strong></div>
+            <div class="stat"><span>Transf. pendentes</span><strong id="statTransferPending">0</strong></div>
+            <div class="stat"><span>Valor estoque</span><strong id="statStockValue">R$ 0,00</strong></div>
+            <div class="stat"><span>Valor vendido</span><strong id="statSoldValue">R$ 0,00</strong></div>
+          </div>
+        </div>
+
+        <div class="card box">
+          <p class="eyebrow">Fornecedores</p>
+          <h3>Cadastrar fornecedor</h3>
+          <div class="field">
+            <label for="supplierName">Nome do fornecedor</label>
+            <input id="supplierName" type="text" placeholder="Ex: MER REPASSE" />
+          </div>
+          <button class="btn primary" id="addSupplierBtn">Criar fornecedor</button>
+          <div class="supplier-list" id="supplierList"></div>
+        </div>
+
+        <div class="card box">
+          <p class="eyebrow">Importação</p>
+          <h3>Importar veículos</h3>
+          <div class="panel-box">
+            <p class="help">
+              Aceita Excel, CSV e PDF. Para PDF do Boom Sistemas, o sistema lê a ordem correta:
+              <strong>placa, ano, FIPE e Valor Venda</strong>, sem usar lucro previsto como preço.
+            </p>
+            <input id="fileInput" type="file" accept=".xlsx,.xls,.csv,.pdf" />
+            <p class="help" id="importStatus">Nenhum arquivo importado.</p>
+          </div>
+        </div>
+
+        <div class="card box">
+          <p class="eyebrow">Backup</p>
+          <h3>Backup e restauração</h3>
+          <div class="panel-box">
+            <button class="btn primary" id="backupBtn">Baixar backup completo</button>
+            <div class="field">
+              <label for="restoreInput">Restaurar backup JSON</label>
+              <input id="restoreInput" type="file" accept=".json" />
+            </div>
+            <button class="btn secondary" id="restoreBtn">Restaurar backup</button>
+            <p class="help" id="backupStatus">Salva veículos, fornecedores, status e transferência.</p>
+          </div>
+        </div>
+
+        <div class="card box">
+          <p class="eyebrow">Exportação</p>
+          <h3>Relatórios</h3>
+          <div class="panel-box">
+            <button class="btn primary" id="exportCurrentXlsxBtn">Excel da aba atual</button>
+            <button class="btn secondary" id="exportAllXlsxBtn">Excel completo</button>
+            <button class="btn secondary" id="exportCurrentCsvBtn">CSV da aba atual</button>
+            <button class="btn secondary" id="exportCurrentJsonBtn">JSON da aba atual</button>
+            <button class="btn blue" id="exportReportBtn">Relatório HTML</button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <section class="card box form-card">
+          <p class="eyebrow">Cadastro</p>
+          <h2 id="formTitle">Adicionar veículo</h2>
+          <p class="help">
+            Cadastre cada informação em seu próprio campo. A placa bloqueia duplicidade.
+          </p>
+
+          <div class="form-grid">
+            <div class="field">
+              <label for="modelInput">Modelo</label>
+              <input id="modelInput" type="text" placeholder="Ex: ONIX HATCH LT 1.4" />
+            </div>
+
+            <div class="field">
+              <label for="yearInput">Ano</label>
+              <input id="yearInput" type="text" placeholder="2019/2020" />
+            </div>
+
+            <div class="field">
+              <label for="plateInput">Placa</label>
+              <input id="plateInput" type="text" placeholder="ABC-1D23" maxlength="8" />
+            </div>
+
+            <div class="field">
+              <label for="saleValueInput">Valor venda</label>
+              <input id="saleValueInput" type="text" placeholder="R$ 0,00" />
+            </div>
+
+            <div class="field">
+              <label for="proxyInput">Procuração</label>
+              <select id="proxyInput">
+                <option value="NÃO">NÃO</option>
+                <option value="SIM">SIM</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="supplierInput">Fornecedor</label>
+              <select id="supplierInput"></select>
+            </div>
+
+            <div class="field">
+              <label for="personInput">Nome da pessoa</label>
+              <input id="personInput" type="text" placeholder="Nome separado" />
+            </div>
+          </div>
+
+          <div id="duplicateWarning" class="alert">
+            Este carro já está cadastrado. Não é permitido duplicar veículos com a mesma placa.
+          </div>
+
+          <div class="btns">
+            <button class="btn primary" id="saveCarBtn">Salvar veículo</button>
+            <button class="btn secondary" id="cancelEditBtn" style="display:none;">Cancelar edição</button>
+            <button class="btn secondary" id="clearFormBtn">Limpar campos</button>
+          </div>
+        </section>
+
+        <section class="card box">
+          <div class="toolbar">
+            <div class="tabs">
+              <button class="tab active" id="stockTab">Estoque</button>
+              <button class="tab" id="soldTab">Vendidos</button>
+              <button class="tab" id="canceledTab">Cancelados</button>
+              <button class="tab" id="allTab">Todos</button>
+            </div>
+
+            <div class="filters">
+              <input id="searchInput" type="search" placeholder="Buscar modelo, placa, pessoa..." />
+              <select id="supplierFilter"></select>
+              <select id="proxyFilter">
+                <option value="">Procuração: todos</option>
+                <option value="SIM">Procuração: SIM</option>
+                <option value="NÃO">Procuração: NÃO</option>
+              </select>
+            </div>
+          </div>
+
+          <section id="stockSection" class="table-section active">
+            <div class="section-title">
+              <div>
+                <h2>Veículos em estoque</h2>
+                <p>Somente veículos disponíveis. Use o seletor de status para mover para vendido ou cancelado.</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Modelo</th>
+                    <th>Ano</th>
+                    <th>Placa</th>
+                    <th>Valor</th>
+                    <th>Proc.</th>
+                    <th>Fornecedor</th>
+                    <th>Pessoa</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="stockTable"><tr><td class="empty" colspan="9">Nenhum veículo em estoque.</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="soldSection" class="table-section">
+            <div class="section-title">
+              <div>
+                <h2>Veículos vendidos</h2>
+                <p>Área compacta para acompanhar transferência sem ocupar espaço desnecessário.</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Modelo</th>
+                    <th>Ano</th>
+                    <th>Placa</th>
+                    <th>Valor</th>
+                    <th>Fornecedor</th>
+                    <th>Pessoa</th>
+                    <th>Venda</th>
+                    <th>Transferência</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="soldTable"><tr><td class="empty" colspan="10">Nenhum veículo vendido.</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="canceledSection" class="table-section">
+            <div class="section-title">
+              <div>
+                <h2>Veículos cancelados</h2>
+                <p>Veículos retirados do fluxo principal, mas mantidos no histórico.</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Modelo</th>
+                    <th>Ano</th>
+                    <th>Placa</th>
+                    <th>Valor</th>
+                    <th>Fornecedor</th>
+                    <th>Pessoa</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="canceledTable"><tr><td class="empty" colspan="8">Nenhum veículo cancelado.</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="allSection" class="table-section">
+            <div class="section-title">
+              <div>
+                <h2>Todos os veículos</h2>
+                <p>Visão geral com estoque, vendidos e cancelados em uma tabela única.</p>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Modelo</th>
+                    <th>Ano</th>
+                    <th>Placa</th>
+                    <th>Valor</th>
+                    <th>Proc.</th>
+                    <th>Fornecedor</th>
+                    <th>Pessoa</th>
+                    <th>Status</th>
+                    <th>Venda</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody id="allTable"><tr><td class="empty" colspan="10">Nenhum veículo cadastrado.</td></tr></tbody>
+              </table>
+            </div>
+          </section>
+
+          <div class="btns export-actions">
+            <button class="btn secondary" id="printBtn">Imprimir / PDF</button>
+            <button class="btn danger" id="clearCarsBtn">Limpar veículos</button>
+          </div>
+        </section>
+      </main>
+    </section>
+  </div>
+
+  <script>
+    const STORAGE_CARS = "mer_controle_veiculos_organizado_v1";
+    const STORAGE_SUPPLIERS = "mer_controle_fornecedores_organizado_v1";
+
+    const LEGACY_CAR_KEYS = [
+      "mer_controle_carros_valor_export_v1",
+      "mer_controle_carros_transferencia_v1",
+      "mer_carros_controle_backup_v1",
+      "mer_carros_controle_v3_sem_duplicidade",
+      "mer_carros_controle_v2"
+    ];
+
+    const LEGACY_SUPPLIER_KEYS = [
+      "mer_controle_fornecedores_valor_export_v1",
+      "mer_controle_fornecedores_transferencia_v1",
+      "mer_fornecedores_controle_backup_v1",
+      "mer_fornecedores_controle_v3",
+      "mer_fornecedores_controle_v2"
+    ];
+
+    const DEFAULT_SUPPLIERS = ["ROMULO", "WH REPASSE", "MER SEMINOVOS", "MER REPASSE"];
+
+    const TRANSFER_STEPS = [
+      "Vendido",
+      "Conferir documentos",
+      "ATPV / Procuração",
+      "Assinatura reconhecida",
+      "Transferência iniciada",
+      "Transferência concluída"
+    ];
+
+    let suppliers = [];
+    let cars = [];
+    let currentTab = "stock";
+    let editingId = null;
+    let selectedRestoreFile = null;
+
+    const $ = id => document.getElementById(id);
+
+    document.addEventListener("DOMContentLoaded", init);
+
+    function init() {
+      loadData();
+      bindEvents();
+      renderAll();
+    }
+
+    function bindEvents() {
+      $("addSupplierBtn").addEventListener("click", addSupplier);
+      $("saveCarBtn").addEventListener("click", saveCar);
+      $("clearFormBtn").addEventListener("click", clearForm);
+      $("cancelEditBtn").addEventListener("click", clearForm);
+
+      $("stockTab").addEventListener("click", () => setTab("stock"));
+      $("soldTab").addEventListener("click", () => setTab("sold"));
+      $("canceledTab").addEventListener("click", () => setTab("canceled"));
+      $("allTab").addEventListener("click", () => setTab("all"));
+
+      $("searchInput").addEventListener("input", renderTables);
+      $("supplierFilter").addEventListener("change", renderTables);
+      $("proxyFilter").addEventListener("change", renderTables);
+
+      $("printBtn").addEventListener("click", () => window.print());
+      $("clearCarsBtn").addEventListener("click", clearAllCars);
+
+      $("fileInput").addEventListener("change", e => handleImport(e.target.files[0]));
+
+      $("backupBtn").addEventListener("click", downloadBackup);
+      $("restoreInput").addEventListener("change", e => {
+        selectedRestoreFile = e.target.files[0] || null;
+        $("backupStatus").textContent = selectedRestoreFile
+          ? `Backup selecionado: ${selectedRestoreFile.name}`
+          : "Nenhum backup selecionado.";
+      });
+      $("restoreBtn").addEventListener("click", restoreBackup);
+
+      $("exportCurrentXlsxBtn").addEventListener("click", () => exportXlsx(false));
+      $("exportAllXlsxBtn").addEventListener("click", () => exportXlsx(true));
+      $("exportCurrentCsvBtn").addEventListener("click", exportCsv);
+      $("exportCurrentJsonBtn").addEventListener("click", exportJson);
+      $("exportReportBtn").addEventListener("click", exportHtmlReport);
+
+      $("plateInput").addEventListener("input", () => {
+        $("plateInput").value = cleanPlate($("plateInput").value);
+        checkDuplicateInForm();
+      });
+
+      $("saleValueInput").addEventListener("blur", () => {
+        $("saleValueInput").value = formatCurrency(parseCurrency($("saleValueInput").value));
+      });
+
+      $("modelInput").addEventListener("input", checkDuplicateInForm);
+      $("yearInput").addEventListener("input", checkDuplicateInForm);
+    }
+
+    function loadData() {
+      suppliers = readJson(STORAGE_SUPPLIERS, null);
+      cars = readJson(STORAGE_CARS, null);
+
+      if (!suppliers) suppliers = readFirstLegacy(LEGACY_SUPPLIER_KEYS, DEFAULT_SUPPLIERS);
+      if (!cars) cars = readFirstLegacy(LEGACY_CAR_KEYS, []);
+
+      suppliers = uniqueStrings(suppliers.length ? suppliers : DEFAULT_SUPPLIERS);
+      cars = removeDuplicatedCars(cars).map(normalizeCar);
+      saveData();
+    }
+
+    function readJson(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch {
+        return fallback;
+      }
+    }
+
+    function readFirstLegacy(keys, fallback) {
+      for (const key of keys) {
+        const value = readJson(key, null);
+        if (Array.isArray(value) && value.length) return value;
+      }
+      return fallback;
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_SUPPLIERS, JSON.stringify(suppliers));
+      localStorage.setItem(STORAGE_CARS, JSON.stringify(cars));
+    }
+
+    function renderAll() {
+      renderSupplierOptions();
+      renderSupplierList();
+      renderStats();
+      renderTables();
+      checkDuplicateInForm();
+    }
+
+    function renderSupplierOptions() {
+      $("supplierInput").innerHTML = [
+        '<option value="">Sem fornecedor</option>',
+        ...suppliers.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`)
+      ].join("");
+
+      $("supplierFilter").innerHTML = [
+        '<option value="">Todos fornecedores</option>',
+        '<option value="__NONE__">Sem fornecedor</option>',
+        ...suppliers.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`)
+      ].join("");
+    }
+
+    function renderSupplierList() {
+      const list = $("supplierList");
+      list.innerHTML = "";
+
+      if (!suppliers.length) {
+        list.innerHTML = '<div class="supplier-item">Nenhum fornecedor cadastrado.</div>';
+        return;
+      }
+
+      suppliers.forEach(name => {
+        const item = document.createElement("div");
+        item.className = "supplier-item";
+        item.innerHTML = `
+          <strong>${escapeHtml(name)}</strong>
+          <button data-remove-supplier="${escapeHtml(name)}">Excluir</button>
+        `;
+        list.appendChild(item);
+      });
+
+      document.querySelectorAll("[data-remove-supplier]").forEach(button => {
+        button.addEventListener("click", () => removeSupplier(button.dataset.removeSupplier));
+      });
+    }
+
+    function renderStats() {
+      const stock = cars.filter(car => car.status === "estoque");
+      const sold = cars.filter(car => car.status === "vendido");
+      const canceled = cars.filter(car => car.status === "cancelado");
+      const pendingTransfer = sold.filter(car => Number(car.etapaTransferencia || 0) < TRANSFER_STEPS.length - 1);
+
+      $("statStock").textContent = stock.length;
+      $("statSold").textContent = sold.length;
+      $("statCanceled").textContent = canceled.length;
+      $("statTransferPending").textContent = pendingTransfer.length;
+      $("statStockValue").textContent = formatCurrency(sumValues(stock));
+      $("statSoldValue").textContent = formatCurrency(sumValues(sold));
+    }
+
+    function renderTables() {
+      renderStockTable();
+      renderSoldTable();
+      renderCanceledTable();
+      renderAllTable();
+      renderStats();
+    }
+
+    function baseCells(car, includeProxy = true) {
+      return `
+        <td><div class="vehicle-title">${escapeHtml(car.modelo || "-")}</div></td>
+        <td>${escapeHtml(car.ano || "-")}</td>
+        <td><strong>${escapeHtml(car.placa || "-")}</strong></td>
+        <td><span class="money">${escapeHtml(formatCurrency(car.valorVenda))}</span></td>
+        ${includeProxy ? `<td><span class="pill ${car.procuracao === "SIM" ? "sim" : "nao"}">${escapeHtml(car.procuracao || "NÃO")}</span></td>` : ""}
+        <td>${escapeHtml(car.fornecedor || "Sem fornecedor")}</td>
+        <td><div class="person-text">${escapeHtml(car.pessoa || "-")}</div></td>
+      `;
+    }
+
+    function statusControl(car) {
+      return `
+        <select class="status-select" data-status="${car.id}">
+          <option value="estoque" ${car.status === "estoque" ? "selected" : ""}>Estoque</option>
+          <option value="vendido" ${car.status === "vendido" ? "selected" : ""}>Vendido</option>
+          <option value="cancelado" ${car.status === "cancelado" ? "selected" : ""}>Cancelado</option>
+        </select>
+      `;
+    }
+
+    function actionButtons(car, soldCompact = false) {
+      const transferBtns = soldCompact ? `
+        <button class="btn mini primary" data-next="${car.id}">+</button>
+        <button class="btn mini secondary" data-prev="${car.id}">-</button>
+      ` : "";
+
+      return `
+        <div class="actions">
+          <button class="btn mini secondary" data-edit="${car.id}">Editar</button>
+          ${transferBtns}
+          <button class="btn mini danger" data-delete="${car.id}">Excluir</button>
+        </div>
+      `;
+    }
+
+    function renderStockTable() {
+      const data = filteredCars("stock");
+      const tbody = $("stockTable");
+      tbody.innerHTML = "";
+
+      if (!data.length) {
+        tbody.innerHTML = '<tr><td class="empty" colspan="9">Nenhum veículo em estoque.</td></tr>';
+        return;
+      }
+
+      data.forEach(car => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          ${baseCells(car, true)}
+          <td>${statusControl(car)}</td>
+          <td>${actionButtons(car)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      bindRowEvents(tbody);
+    }
+
+    function renderSoldTable() {
+      const data = filteredCars("sold");
+      const tbody = $("soldTable");
+      tbody.innerHTML = "";
+
+      if (!data.length) {
+        tbody.innerHTML = '<tr><td class="empty" colspan="10">Nenhum veículo vendido.</td></tr>';
+        return;
+      }
+
+      data.forEach(car => {
+        const stepIndex = clampStep(car.etapaTransferencia);
+        const progress = Math.round(((stepIndex + 1) / TRANSFER_STEPS.length) * 100);
+        const stepOptions = TRANSFER_STEPS.map((step, index) => {
+          const selected = index === stepIndex ? "selected" : "";
+          return `<option value="${index}" ${selected}>${escapeHtml(step)}</option>`;
+        }).join("");
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          ${baseCells(car, false)}
+          <td>${escapeHtml(car.dataVenda || "-")}</td>
+          <td>
+            <div class="progress-compact">
+              <div class="progress-label">
+                <strong>${escapeHtml(TRANSFER_STEPS[stepIndex])}</strong>
+                <span>${progress}%</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill" style="width:${progress}%"></div></div>
+              <div class="step-line">
+                <select data-step="${car.id}">${stepOptions}</select>
+              </div>
+            </div>
+          </td>
+          <td>${statusControl(car)}</td>
+          <td>${actionButtons(car, true)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      bindRowEvents(tbody);
+    }
+
+    function renderCanceledTable() {
+      const data = filteredCars("canceled");
+      const tbody = $("canceledTable");
+      tbody.innerHTML = "";
+
+      if (!data.length) {
+        tbody.innerHTML = '<tr><td class="empty" colspan="8">Nenhum veículo cancelado.</td></tr>';
+        return;
+      }
+
+      data.forEach(car => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          ${baseCells(car, false)}
+          <td>${statusControl(car)}</td>
+          <td>${actionButtons(car)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      bindRowEvents(tbody);
+    }
+
+    function renderAllTable() {
+      const data = filteredCars("all");
+      const tbody = $("allTable");
+      tbody.innerHTML = "";
+
+      if (!data.length) {
+        tbody.innerHTML = '<tr><td class="empty" colspan="10">Nenhum veículo cadastrado.</td></tr>';
+        return;
+      }
+
+      data.forEach(car => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          ${baseCells(car, true)}
+          <td><span class="pill ${car.status}">${statusLabel(car.status)}</span></td>
+          <td>${escapeHtml(car.dataVenda || "-")}</td>
+          <td>${actionButtons(car)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      bindRowEvents(tbody);
+    }
+
+    function bindRowEvents(scope) {
+      scope.querySelectorAll("[data-status]").forEach(select => {
+        select.addEventListener("change", () => updateStatus(select.dataset.status, select.value));
+      });
+      scope.querySelectorAll("[data-step]").forEach(select => {
+        select.addEventListener("change", () => updateTransferStep(select.dataset.step, Number(select.value)));
+      });
+      scope.querySelectorAll("[data-edit]").forEach(btn => {
+        btn.addEventListener("click", () => editCar(btn.dataset.edit));
+      });
+      scope.querySelectorAll("[data-next]").forEach(btn => {
+        btn.addEventListener("click", () => nextStep(btn.dataset.next));
+      });
+      scope.querySelectorAll("[data-prev]").forEach(btn => {
+        btn.addEventListener("click", () => prevStep(btn.dataset.prev));
+      });
+      scope.querySelectorAll("[data-delete]").forEach(btn => {
+        btn.addEventListener("click", () => deleteCar(btn.dataset.delete));
+      });
+    }
+
+    function filteredCars(type) {
+      const search = normalize($("searchInput").value);
+      const selectedSupplier = $("supplierFilter").value;
+      const selectedProxy = $("proxyFilter").value;
+
+      return cars.filter(car => {
+        if (type === "stock" && car.status !== "estoque") return false;
+        if (type === "sold" && car.status !== "vendido") return false;
+        if (type === "canceled" && car.status !== "cancelado") return false;
+
+        const text = normalize(`${car.modelo} ${car.ano} ${car.placa} ${car.fornecedor} ${car.pessoa} ${formatCurrency(car.valorVenda)}`);
+        const matchSearch = !search || text.includes(search);
+
+        let matchSupplier = true;
+        if (selectedSupplier === "__NONE__") matchSupplier = !car.fornecedor;
+        else if (selectedSupplier) matchSupplier = car.fornecedor === selectedSupplier;
+
+        const matchProxy = !selectedProxy || car.procuracao === selectedProxy;
+
+        return matchSearch && matchSupplier && matchProxy;
+      });
+    }
+
+    function setTab(tab) {
+      currentTab = tab;
+
+      ["stock", "sold", "canceled", "all"].forEach(item => {
+        $(item + "Tab").classList.toggle("active", tab === item);
+        $(item + "Section").classList.toggle("active", tab === item);
+      });
+    }
+
+    function addSupplier() {
+      const name = cleanText($("supplierName").value);
+
+      if (!name) {
+        alert("Digite o nome do fornecedor.");
+        return;
+      }
+
+      if (suppliers.includes(name)) {
+        alert("Esse fornecedor já está cadastrado.");
+        return;
+      }
+
+      suppliers.push(name);
+      suppliers = uniqueStrings(suppliers).sort();
+      $("supplierName").value = "";
+      saveData();
+      renderAll();
+    }
+
+    function removeSupplier(name) {
+      const isUsed = cars.some(car => car.fornecedor === name);
+
+      if (isUsed) {
+        const ok = confirm("Esse fornecedor está em uso. Deseja remover e deixar os veículos sem fornecedor?");
+        if (!ok) return;
+
+        cars = cars.map(car => car.fornecedor === name ? { ...car, fornecedor: "" } : car);
+      } else if (!confirm("Deseja excluir este fornecedor?")) {
+        return;
+      }
+
+      suppliers = suppliers.filter(item => item !== name);
+      saveData();
+      renderAll();
+    }
+
+    function saveCar() {
+      const editing = getEditingCar();
+
+      const car = {
+        id: editingId || createId(),
+        modelo: cleanVehicleModel($("modelInput").value),
+        ano: cleanYear($("yearInput").value),
+        placa: cleanPlate($("plateInput").value),
+        valorVenda: parseCurrency($("saleValueInput").value),
+        procuracao: $("proxyInput").value || "NÃO",
+        fornecedor: $("supplierInput").value,
+        pessoa: cleanPersonName($("personInput").value),
+        status: editing?.status || "estoque",
+        dataVenda: editing?.dataVenda || "",
+        etapaTransferencia: Number(editing?.etapaTransferencia || 0)
+      };
+
+      if (!car.modelo || !car.ano || !car.placa) {
+        alert("Preencha Modelo, Ano e Placa.");
+        return;
+      }
+
+      if (isDuplicatePlate(car.placa, car.id)) {
+        showDuplicateWarning(true);
+        alert("Esse carro já está cadastrado. Não é permitido duplicar veículo com a mesma placa.");
+        return;
+      }
+
+      if (editingId) cars = cars.map(item => item.id === editingId ? car : item);
+      else cars.push(car);
+
+      cars = removeDuplicatedCars(cars);
+      saveData();
+      clearForm();
+      renderAll();
+    }
+
+    function getEditingCar() {
+      return editingId ? cars.find(car => car.id === editingId) : null;
+    }
+
+    function editCar(id) {
+      const car = cars.find(item => item.id === id);
+      if (!car) return;
+
+      editingId = id;
+      $("formTitle").textContent = "Editar veículo";
+      $("cancelEditBtn").style.display = "";
+
+      $("modelInput").value = car.modelo;
+      $("yearInput").value = car.ano;
+      $("plateInput").value = car.placa;
+      $("saleValueInput").value = formatCurrency(car.valorVenda);
+      $("proxyInput").value = car.procuracao || "NÃO";
+      $("supplierInput").value = car.fornecedor || "";
+      $("personInput").value = car.pessoa || "";
+
+      showDuplicateWarning(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function clearForm() {
+      editingId = null;
+      $("formTitle").textContent = "Adicionar veículo";
+      $("cancelEditBtn").style.display = "none";
+
+      $("modelInput").value = "";
+      $("yearInput").value = "";
+      $("plateInput").value = "";
+      $("saleValueInput").value = "";
+      $("proxyInput").value = "NÃO";
+      $("supplierInput").value = "";
+      $("personInput").value = "";
+
+      showDuplicateWarning(false);
+    }
+
+    function updateStatus(id, status) {
+      const car = cars.find(item => item.id === id);
+      if (!car) return;
+
+      car.status = normalizeStatus(status);
+
+      if (car.status === "vendido") {
+        if (!car.dataVenda) car.dataVenda = new Date().toLocaleDateString("pt-BR");
+        car.etapaTransferencia = clampStep(car.etapaTransferencia || 0);
+      } else {
+        car.dataVenda = "";
+        car.etapaTransferencia = 0;
+      }
+
+      saveData();
+      setTab(statusToTab(car.status));
+      renderAll();
+    }
+
+    function statusToTab(status) {
+      if (status === "vendido") return "sold";
+      if (status === "cancelado") return "canceled";
+      return "stock";
+    }
+
+    function updateTransferStep(id, step) {
+      const car = cars.find(item => item.id === id);
+      if (!car) return;
+
+      car.etapaTransferencia = clampStep(step);
+      saveData();
+      renderAll();
+    }
+
+    function nextStep(id) {
+      const car = cars.find(item => item.id === id);
+      if (!car) return;
+
+      car.etapaTransferencia = clampStep(Number(car.etapaTransferencia || 0) + 1);
+      saveData();
+      renderAll();
+    }
+
+    function prevStep(id) {
+      const car = cars.find(item => item.id === id);
+      if (!car) return;
+
+      car.etapaTransferencia = clampStep(Number(car.etapaTransferencia || 0) - 1);
+      saveData();
+      renderAll();
+    }
+
+    function deleteCar(id) {
+      if (!confirm("Deseja excluir este veículo?")) return;
+
+      cars = cars.filter(car => car.id !== id);
+      saveData();
+      renderAll();
+    }
+
+    function clearAllCars() {
+      if (!confirm("Deseja apagar todos os veículos cadastrados? Os fornecedores serão mantidos.")) return;
+
+      cars = [];
+      saveData();
+      clearForm();
+      renderAll();
+    }
+
+    function checkDuplicateInForm() {
+      const plate = cleanPlate($("plateInput").value);
+      showDuplicateWarning(plate && isDuplicatePlate(plate, editingId));
+    }
+
+    function isDuplicatePlate(plate, exceptId = null) {
+      const key = normalizePlate(plate);
+      if (!key) return false;
+
+      return cars.some(car => normalizePlate(car.placa) === key && car.id !== exceptId);
+    }
+
+    function removeDuplicatedCars(list) {
+      const seen = new Set();
+      const clean = [];
+
+      for (const raw of list) {
+        const car = normalizeCar(raw);
+        const key = normalizePlate(car.placa);
+
+        if (!key) {
+          clean.push(car);
+          continue;
+        }
+
+        if (seen.has(key)) continue;
+
+        seen.add(key);
+        clean.push(car);
+      }
+
+      return clean;
+    }
+
+    function normalizeCar(car) {
+      return {
+        id: car.id || createId(),
+        modelo: cleanVehicleModel(car.modelo || car.model || ""),
+        ano: cleanYear(car.ano || car.year || ""),
+        placa: cleanPlate(car.placa || car.plate || ""),
+        valorVenda: parseCurrency(car.valorVenda ?? car.saleValue ?? car.valor ?? car.preco ?? car["Valor Venda"] ?? car["VALOR VENDA"] ?? 0),
+        procuracao: normalizeProxy(car.procuracao || car.proxy || "NÃO"),
+        fornecedor: cleanText(car.fornecedor || car.supplier || ""),
+        pessoa: cleanPersonName(car.pessoa || car.person || car.nomePessoa || car.cliente || car.proprietario || ""),
+        status: normalizeStatus(car.status),
+        dataVenda: car.dataVenda || car.soldDate || "",
+        etapaTransferencia: clampStep(car.etapaTransferencia || car.transferStep || 0)
+      };
+    }
+
+    function showDuplicateWarning(show) {
+      $("duplicateWarning").classList.toggle("show", !!show);
+    }
+
+    async function handleImport(file) {
+      if (!file) return;
+
+      $("importStatus").textContent = "Processando arquivo...";
+
+      const ext = file.name.split(".").pop().toLowerCase();
+
+      try {
+        let imported = [];
+
+        if (["xlsx", "xls"].includes(ext)) imported = await importExcel(file);
+        else if (ext === "csv") imported = await importCsv(file);
+        else if (ext === "pdf") imported = await importPdf(file);
+        else {
+          alert("Formato não suportado. Use Excel, CSV ou PDF.");
+          return;
+        }
+
+        let added = 0;
+        let skipped = 0;
+
+        for (const raw of imported) {
+          const car = normalizeCar(raw);
+
+          if (!car.modelo && !car.ano && !car.placa) continue;
+          if (!car.placa || isDuplicatePlate(car.placa)) {
+            skipped++;
+            continue;
+          }
+
+          car.status = "estoque";
+          car.dataVenda = "";
+          car.etapaTransferencia = 0;
+          cars.push(car);
+          added++;
+        }
+
+        cars = removeDuplicatedCars(cars);
+        saveData();
+        renderAll();
+
+        $("importStatus").textContent = `${added} veículo(s) importado(s). ${skipped} duplicado(s) ignorado(s).`;
+      } catch (error) {
+        console.error(error);
+        $("importStatus").textContent = "Não foi possível importar esse arquivo.";
+        alert("Falha ao importar. Verifique se o arquivo possui colunas ou texto com modelo, ano, placa e valor.");
+      }
+    }
+
+    async function importExcel(file) {
+      if (!window.XLSX) {
+        alert("A biblioteca de Excel não carregou. Verifique sua internet.");
+        return [];
+      }
+
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: "array" });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+
+      return rowsToCars(rows);
+    }
+
+    async function importCsv(file) {
+      const text = await file.text();
+      const rows = text.split(/\r?\n/)
+        .filter(Boolean)
+        .map(line => line.split(/[;,]/).map(cell => cell.trim()));
+
+      return rowsToCars(rows);
+    }
+
+    async function importPdf(file) {
+      if (!window.pdfjsLib) {
+        alert("A biblioteca de PDF não carregou. Verifique sua internet.");
+        return [];
+      }
+
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+      const buffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+      let text = "";
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += " " + content.items.map(item => item.str).join(" ");
+      }
+
+      return parseCarsFromText(text);
+    }
+
+    function rowsToCars(rows) {
+      const headerIndex = rows.findIndex(row => {
+        const txt = normalize(row.join(" "));
+        return txt.includes("modelo") || txt.includes("veiculo") || txt.includes("placa");
+      });
+
+      if (headerIndex >= 0) {
+        const headers = rows[headerIndex].map(cell => normalize(cell));
+        const iModel = findHeader(headers, ["modelo", "veiculo", "veículo"]);
+        const iYear = findHeader(headers, ["ano", "fab", "ano/modelo"]);
+        const iPlate = findHeader(headers, ["placa"]);
+        const iPrice = findHeader(headers, ["valor venda", "venda", "preco", "preço"]);
+        const iProxy = findHeader(headers, ["procuracao", "procuração"]);
+        const iSupplier = findHeader(headers, ["fornecedor"]);
+        const iPerson = findHeader(headers, ["nome", "cliente", "pessoa", "proprietario", "proprietário"]);
+        const iStatus = findHeader(headers, ["status", "situação", "situacao"]);
+
+        return rows.slice(headerIndex + 1).map(row => ({
+          modelo: iModel >= 0 ? cleanVehicleModel(row[iModel]) : "",
+          ano: iYear >= 0 ? cleanYear(row[iYear]) : extractYear(row.join(" ")),
+          placa: iPlate >= 0 ? cleanPlate(row[iPlate]) : extractPlate(row.join(" ")),
+          valorVenda: iPrice >= 0 ? parseCurrency(row[iPrice]) : extractLastCurrency(row.join(" ")),
+          procuracao: iProxy >= 0 ? normalizeProxy(row[iProxy]) : "NÃO",
+          fornecedor: iSupplier >= 0 ? cleanText(row[iSupplier]) : "",
+          pessoa: iPerson >= 0 ? cleanPersonName(row[iPerson]) : "",
+          status: iStatus >= 0 ? normalizeStatus(row[iStatus]) : "estoque"
+        }));
+      }
+
+      return parseCarsFromText(rows.map(row => row.join(" ")).join(" "));
+    }
+
+    function findHeader(headers, options) {
+      return headers.findIndex(header => options.some(option => header.includes(normalize(option))));
+    }
+
+    function parseCarsFromText(text) {
+      const normalized = String(text).replace(/\s+/g, " ").trim();
+      const result = [];
+      const plates = [...normalized.matchAll(/[A-Z]{3}-?\d[A-Z0-9]\d{2}/gi)];
+
+      let rowStart = findFirstVehicleStart(normalized);
+
+      for (let i = 0; i < plates.length; i++) {
+        const plateMatch = plates[i];
+        const nextPlateIndex = plates[i + 1] ? plates[i + 1].index : normalized.length;
+        const placa = cleanPlate(plateMatch[0]);
+
+        const beforePlate = normalized.slice(rowStart, plateMatch.index);
+        const afterPlate = normalized.slice(plateMatch.index, nextPlateIndex);
+
+        const ano = extractYear(afterPlate) || extractYear(beforePlate);
+        const currencies = getCurrencyMatches(afterPlate);
+
+        const valorVenda = currencies.length >= 3
+          ? parseCurrency(currencies[2].value)
+          : extractLastCurrency(afterPlate);
+
+        const modelo = cleanImportedModelBlock(beforePlate);
+        const pessoa = parseExplicitPerson(beforePlate + " " + afterPlate);
+
+        if (placa || modelo) {
+          result.push({
+            modelo,
+            ano,
+            placa,
+            valorVenda,
+            procuracao: "NÃO",
+            fornecedor: "",
+            pessoa,
+            status: "estoque"
+          });
+        }
+
+        if (currencies.length >= 4) {
+          rowStart = plateMatch.index + currencies[3].index + currencies[3].value.length;
+        } else if (currencies.length >= 3) {
+          rowStart = plateMatch.index + currencies[2].index + currencies[2].value.length;
+        } else {
+          rowStart = plateMatch.index + plateMatch[0].length;
+        }
+      }
+
+      return result;
+    }
+
+    function findFirstVehicleStart(text) {
+      const brands = [
+        "FIAT", "FORD", "GM - CHEVROLET", "CHEVROLET", "HONDA", "HYUNDAI",
+        "JEEP", "NISSAN", "PEUGEOT", "RENAULT", "SMART", "TOYOTA",
+        "VW - VOLKSWAGEN", "VOLKSWAGEN", "YAMAHA", "MERCEDES-BENZ"
+      ];
+
+      let first = text.length;
+      for (const brand of brands) {
+        const index = text.indexOf(brand);
+        if (index >= 0 && index < first) first = index;
+      }
+
+      return first === text.length ? 0 : first;
+    }
+
+    function getCurrencyMatches(text) {
+      const regex = /R?\$?\s?\d{1,3}(?:\.\d{3})*,\d{2}/g;
+      return [...String(text || "").matchAll(regex)].map(match => ({
+        value: match[0],
+        index: match.index || 0
+      }));
+    }
+
+    function cleanImportedModelBlock(value) {
+      let text = cleanText(value);
+
+      text = text
+        .replace(/GERADO POR BOOM SISTEMAS/gi, " ")
+        .replace(/MER SEMINOVOS LTDA/gi, " ")
+        .replace(/\d{2}\/\d{2}\/\d{4}/g, " ")
+        .replace(/R?\$?\s?\d{1,3}(?:\.\d{3})*,\d{2}/g, " ")
+        .replace(/\b(19|20)\d{2}\/(19|20)\d{2}\b/g, " ")
+        .replace(/\b(BRANCA|BRANCO|PRETA|PRETO|PRATA|CINZA|VERMELHA|VERMELHO|AZUL|VERDE|AMARELA|AMARELO)\b/g, " ")
+        .replace(/\b(ESTOQUE|CONSIGNAÇÃO|CONSIGNACAO|TOTAL|VEÍCULO|VEICULO|ANO|FAB\/MOD|COR|KM|STATUS|DIAS EM|DIAS|VALOR|CUSTO|FIPE|ATUAL|VENDA|LUCRO|PREVISTO|NFE|ENTRADA|SAÍDA|SAIDA)\b/g, " ")
+        .replace(/\b(FIAT|FORD|GM - CHEVROLET|CHEVROLET|HONDA|HYUNDAI|JEEP|NISSAN|PEUGEOT|RENAULT|SMART|TOYOTA|VW - VOLKSWAGEN|VOLKSWAGEN|YAMAHA|MERCEDES-BENZ)\b/g, " ")
+        .replace(/\b\d{1,3}(?:\.\d{3})?\b/g, " ")
+        .replace(/\s+-\s*$/g, " ")
+        .replace(/^-|-$|–$/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      return cleanVehicleModel(text);
+    }
+
+    function parseExplicitPerson(text) {
+      const match = String(text || "").match(/\b(?:NOME|CLIENTE|COMPRADOR|PESSOA|PROPRIET[AÁ]RIO)\s*[:\-]\s*([A-ZÀ-ÿ\s]{3,80}?)(?:\s+(?:CPF|RG|CNPJ|PLACA|MODELO|ANO|R\$)|$)/i);
+      return match ? cleanPersonName(match[1]) : "";
+    }
+
+    function downloadBackup() {
+      const backup = {
+        sistema: "Controle de Veículos MER Seminovos",
+        versao: "4.0",
+        criadoEm: new Date().toISOString(),
+        fornecedores: suppliers,
+        veiculos: cars,
+        etapasTransferencia: TRANSFER_STEPS
+      };
+
+      const date = new Date().toLocaleDateString("pt-BR").replaceAll("/", "-");
+      downloadFile(JSON.stringify(backup, null, 2), `backup-controle-veiculos-${date}.json`, "application/json");
+      $("backupStatus").textContent = "Backup baixado com sucesso.";
+    }
+
+    async function restoreBackup() {
+      if (!selectedRestoreFile) {
+        alert("Selecione um arquivo de backup JSON.");
+        return;
+      }
+
+      if (!confirm("Restaurar backup vai substituir os dados atuais. Deseja continuar?")) return;
+
+      try {
+        const text = await selectedRestoreFile.text();
+        const backup = JSON.parse(text);
+
+        const backupCars = backup.veiculos || backup.cars || [];
+        const backupSuppliers = backup.fornecedores || backup.suppliers || [];
+
+        if (!Array.isArray(backupCars) || !Array.isArray(backupSuppliers)) {
+          throw new Error("Backup inválido.");
+        }
+
+        suppliers = uniqueStrings([...DEFAULT_SUPPLIERS, ...backupSuppliers]).sort();
+        cars = removeDuplicatedCars(backupCars);
+
+        saveData();
+        clearForm();
+        renderAll();
+
+        $("backupStatus").textContent = `Backup restaurado com sucesso. ${cars.length} veículo(s) carregado(s).`;
+        $("restoreInput").value = "";
+        selectedRestoreFile = null;
+      } catch (error) {
+        console.error(error);
+        alert("Backup inválido ou corrompido.");
+        $("backupStatus").textContent = "Não foi possível restaurar o backup.";
+      }
+    }
+
+    function exportXlsx(allTabs) {
+      if (!window.XLSX) {
+        alert("A biblioteca de Excel não carregou. Verifique sua internet.");
+        return;
+      }
+
+      const workbook = XLSX.utils.book_new();
+
+      if (allTabs) {
+        addSheet(workbook, "Resumo", getSummaryRows());
+        addSheet(workbook, "Estoque", vehiclesToExportRows(cars.filter(car => car.status === "estoque")));
+        addSheet(workbook, "Vendidos", vehiclesToExportRows(cars.filter(car => car.status === "vendido")));
+        addSheet(workbook, "Cancelados", vehiclesToExportRows(cars.filter(car => car.status === "cancelado")));
+        addSheet(workbook, "Fornecedores", suppliers.map(name => ({ FORNECEDOR: name })));
+      } else {
+        addSheet(workbook, tabLabel(currentTab), vehiclesToExportRows(filteredCars(currentTab)));
+      }
+
+      const date = new Date().toLocaleDateString("pt-BR").replaceAll("/", "-");
+      const filename = allTabs ? `relatorio-completo-veiculos-${date}.xlsx` : `relatorio-${currentTab}-${date}.xlsx`;
+      XLSX.writeFile(workbook, filename);
+    }
+
+    function addSheet(workbook, name, rows) {
+      const sheet = XLSX.utils.json_to_sheet(rows.length ? rows : [{}]);
+      sheet["!cols"] = [
+        { wch: 34 }, { wch: 12 }, { wch: 12 }, { wch: 16 },
+        { wch: 14 }, { wch: 22 }, { wch: 24 }, { wch: 14 },
+        { wch: 14 }, { wch: 28 }
+      ];
+      XLSX.utils.book_append_sheet(workbook, sheet, name);
+    }
+
+    function getSummaryRows() {
+      const stock = cars.filter(car => car.status === "estoque");
+      const sold = cars.filter(car => car.status === "vendido");
+      const canceled = cars.filter(car => car.status === "cancelado");
+
+      return [
+        { INDICADOR: "Veículos em estoque", VALOR: stock.length },
+        { INDICADOR: "Veículos vendidos", VALOR: sold.length },
+        { INDICADOR: "Veículos cancelados", VALOR: canceled.length },
+        { INDICADOR: "Valor total em estoque", VALOR: formatCurrency(sumValues(stock)) },
+        { INDICADOR: "Valor total vendido", VALOR: formatCurrency(sumValues(sold)) },
+        { INDICADOR: "Gerado em", VALOR: new Date().toLocaleString("pt-BR") }
+      ];
+    }
+
+    function vehiclesToExportRows(list) {
+      return list.map(car => ({
+        MODELO: car.modelo,
+        ANO: car.ano,
+        PLACA: car.placa,
+        "VALOR DE VENDA": formatCurrency(car.valorVenda),
+        "PROCURAÇÃO": car.procuracao,
+        FORNECEDOR: car.fornecedor || "Sem fornecedor",
+        "NOME DA PESSOA": car.pessoa || "",
+        STATUS: statusLabel(car.status),
+        "DATA DA VENDA": car.dataVenda || "",
+        "ETAPA TRANSFERÊNCIA": car.status === "vendido" ? TRANSFER_STEPS[clampStep(car.etapaTransferencia)] : ""
+      }));
+    }
+
+    function exportCsv() {
+      const data = vehiclesToExportRows(filteredCars(currentTab));
+      if (!data.length) {
+        alert("Não há dados para exportar.");
+        return;
+      }
+
+      const headers = Object.keys(data[0]);
+      const csv = [headers, ...data.map(row => headers.map(header => row[header]))]
+        .map(row => row.map(cell => `"${String(cell || "").replace(/"/g, '""')}"`).join(";"))
+        .join("\n");
+
+      const date = new Date().toLocaleDateString("pt-BR").replaceAll("/", "-");
+      downloadFile(csv, `relatorio-${currentTab}-${date}.csv`, "text/csv;charset=utf-8");
+    }
+
+    function exportJson() {
+      const data = filteredCars(currentTab);
+      if (!data.length) {
+        alert("Não há dados para exportar.");
+        return;
+      }
+
+      const date = new Date().toLocaleDateString("pt-BR").replaceAll("/", "-");
+      downloadFile(JSON.stringify(data, null, 2), `relatorio-${currentTab}-${date}.json`, "application/json");
+    }
+
+    function exportHtmlReport() {
+      const rows = vehiclesToExportRows(filteredCars(currentTab));
+      if (!rows.length) {
+        alert("Não há dados para gerar relatório.");
+        return;
+      }
+
+      const generatedAt = new Date().toLocaleString("pt-BR");
+      const title = `Relatório - ${tabLabel(currentTab)}`;
+
+      const report = `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>${title}</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 28px; color: #111827; }
+  h1 { margin-bottom: 4px; }
+  .muted { color: #6b7280; }
+  table { width: 100%; border-collapse: collapse; margin-top: 18px; }
+  th, td { border: 1px solid #d1d5db; padding: 7px; text-align: left; font-size: 12px; }
+  th { background: #facc15; color: #111; }
+</style>
+</head>
+<body>
+  <h1>${title}</h1>
+  <p class="muted">MER Seminovos • Gerado em ${escapeHtml(generatedAt)}</p>
+  <table>
+    <thead>
+      <tr>${Object.keys(rows[0]).map(h => `<th>${escapeHtml(h)}</th>`).join("")}</tr>
+    </thead>
+    <tbody>
+      ${rows.map(row => `<tr>${Object.values(row).map(v => `<td>${escapeHtml(v)}</td>`).join("")}</tr>`).join("")}
+    </tbody>
+  </table>
+</body>
+</html>`;
+
+      const date = new Date().toLocaleDateString("pt-BR").replaceAll("/", "-");
+      downloadFile(report, `relatorio-${currentTab}-${date}.html`, "text/html;charset=utf-8");
+    }
+
+    function downloadFile(content, filename, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function sumValues(list) {
+      return list.reduce((total, car) => total + Number(car.valorVenda || 0), 0);
+    }
+
+    function parseCurrency(value) {
+      if (typeof value === "number") return value;
+
+      const text = String(value || "").trim();
+      if (!text) return 0;
+
+      const cleaned = text
+        .replace(/[^\d,.-]/g, "")
+        .replace(/\.(?=\d{3}(?:\D|$))/g, "")
+        .replace(",", ".");
+
+      const number = Number(cleaned);
+      return Number.isFinite(number) ? number : 0;
+    }
+
+    function extractLastCurrency(text) {
+      const matches = String(text || "").match(/R?\$?\s?\d{1,3}(?:\.\d{3})*,\d{2}/g);
+      if (!matches || !matches.length) return 0;
+      return parseCurrency(matches[matches.length - 1]);
+    }
+
+    function formatCurrency(value) {
+      const number = Number(value || 0);
+      return number.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
+    function createId() {
+      return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    }
+
+    function cleanText(value) {
+      return String(value || "").replace(/\s+/g, " ").trim().toUpperCase();
+    }
+
+    function cleanVehicleModel(value) {
+      return cleanText(value)
+        .replace(/\b(NOME|CLIENTE|COMPRADOR|PESSOA|PROPRIET[AÁ]RIO)\s*[:\-].*$/i, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function cleanPersonName(value) {
+      return String(value || "")
+        .replace(/\s+/g, " ")
+        .replace(/\b(CPF|RG|CNPJ|CLIENTE|PROPRIETÁRIO|PROPRIETARIO|NOME)\b/gi, " ")
+        .replace(/[;|]+/g, " ")
+        .trim()
+        .toUpperCase();
+    }
+
+    function cleanYear(value) {
+      const text = String(value || "").trim();
+      return extractYear(text) || text;
+    }
+
+    function cleanPlate(value) {
+      const raw = String(value || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+      if (raw.length === 7) return `${raw.slice(0, 3)}-${raw.slice(3)}`;
+      return String(value || "").toUpperCase().trim();
+    }
+
+    function normalizePlate(value) {
+      return String(value || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+    }
+
+    function normalizeProxy(value) {
+      const text = normalize(value);
+      return text === "sim" || text === "s" || text === "yes" ? "SIM" : "NÃO";
+    }
+
+    function normalizeStatus(value) {
+      const text = normalize(value);
+      if (text.includes("vend")) return "vendido";
+      if (text.includes("cancel")) return "cancelado";
+      return "estoque";
+    }
+
+    function statusLabel(status) {
+      if (status === "vendido") return "Vendido";
+      if (status === "cancelado") return "Cancelado";
+      return "Estoque";
+    }
+
+    function tabLabel(tab) {
+      if (tab === "sold") return "Vendidos";
+      if (tab === "canceled") return "Cancelados";
+      if (tab === "all") return "Todos";
+      return "Estoque";
+    }
+
+    function clampStep(step) {
+      const number = Number(step || 0);
+      return Math.min(Math.max(number, 0), TRANSFER_STEPS.length - 1);
+    }
+
+    function extractYear(text) {
+      const match = String(text || "").match(/\b(19|20)\d{2}\/(19|20)\d{2}\b/);
+      return match ? match[0] : "";
+    }
+
+    function extractPlate(text) {
+      const match = String(text || "").toUpperCase().match(/[A-Z]{3}-?\d[A-Z0-9]\d{2}/);
+      return match ? cleanPlate(match[0]) : "";
+    }
+
+    function normalize(value) {
+      return String(value || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
+    }
+
+    function uniqueStrings(list) {
+      return [...new Set(list.map(cleanText).filter(Boolean))];
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+  </script>
+</body>
+</html>
